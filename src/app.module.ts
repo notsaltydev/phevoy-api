@@ -6,6 +6,8 @@ import { CoreModule } from './core/core.module';
 import { UsersModule } from './users/users.module';
 import { ConnectionOptions } from "typeorm";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { ScheduleModule } from './schedule/schedule.module';
+import { ConferenceModule } from './conference/conference.module';
 
 @Module({})
 export class AppModule {
@@ -17,6 +19,8 @@ export class AppModule {
             imports: [
                 AuthModule,
                 UsersModule,
+                ConferenceModule,
+                ScheduleModule,
                 CoreModule,
                 TypeOrmModule.forRoot(connOptions),
             ],

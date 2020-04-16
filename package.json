@@ -21,6 +21,7 @@
     "typeorm:cli": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f ormconfig.json",
     "db:migration:generate": "npm-run-all -s -l clean build:server && yarn typeorm:cli migration:generate",
     "db:migration:create": "yarn typeorm:cli migration:create",
+    "db:migration:revert": "yarn typeorm:cli migration:revert",
     "db:migrate": "npm-run-all -s -l clean build:server && yarn typeorm:cli migration:run",
     "query": "yarn typeorm:cli query",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
