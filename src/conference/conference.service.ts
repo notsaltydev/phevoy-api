@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateConferenceDto } from "./dto/create-conference.dto";
 import { ConferenceDto } from "./dto/conference.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -38,6 +38,37 @@ export class ConferenceService {
         });
 
         await this.conferenceRepository.save(conference);
+
+        return toConferenceDto(conference);
+    }
+
+    async updateConference(id: string, conferenceDto: ConferenceDto): Promise<ConferenceDto> {
+        const {name, description, startDate, endDate} = conferenceDto;
+
+        let conference: ConferenceEntity = await this.conferenceRepository.findOne({where: {id}});
+
+        if (!conference) {
+            throw new HttpException(
+                `Conference doesn't exist`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        conference = {
+            id,
+            name,
+            description,
+            startDate,
+            endDate,
+            updatedOn: new Date()
+        }
+
+        await this.conferenceRepository.update({id}, conference);
+
+        conference = await this.conferenceRepository.findOne({
+            where: {id},
+            relations: ['owner'],
+        });
 
         return toConferenceDto(conference);
     }

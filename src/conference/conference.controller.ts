@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { CreateConferenceDto } from "./dto/create-conference.dto";
 import { ConferenceDto } from "./dto/conference.dto";
 import { AuthGuard } from "@nestjs/passport";
@@ -16,5 +16,14 @@ export class ConferenceController {
         @Body() createConferenceDto: CreateConferenceDto,
     ): Promise<ConferenceDto> {
         return await this.conferenceService.createConference(scheduleId, createConferenceDto);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuard())
+    async update(
+        @Param('id') conferenceId: string,
+        @Body() conferenceDto: ConferenceDto
+    ): Promise<ConferenceDto> {
+        return await this.conferenceService.updateConference(conferenceId, conferenceDto);
     }
 }
