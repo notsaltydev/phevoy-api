@@ -1,0 +1,17 @@
+import { CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ConferenceEntity } from "../../conference/entity/conference.entity";
+import { UserEntity } from "../../users/entity/user.entity";
+
+@Entity('schedule')
+export class ScheduleEntity {
+    @PrimaryGeneratedColumn('uuid') id: string;
+    @CreateDateColumn({nullable: false}) date: Date;
+    @CreateDateColumn() createdOn?: Date;
+    @CreateDateColumn() updatedOn?: Date;
+
+    @ManyToOne(type => UserEntity)
+    owner?: UserEntity;
+
+    @OneToMany(type => ConferenceEntity, conference => conference.schedule)
+    conferences?: ConferenceEntity[];
+}
