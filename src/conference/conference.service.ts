@@ -72,4 +72,18 @@ export class ConferenceService {
 
         return toConferenceDto(conference);
     }
+
+    async deleteConference(id: string): Promise<ConferenceDto> {
+        const conference: ConferenceEntity = await this.conferenceRepository.findOne({
+            where: {id}
+        });
+
+        if (!conference) {
+            throw new HttpException(`Conference doesn't exist`, HttpStatus.BAD_REQUEST);
+        }
+
+        await this.conferenceRepository.delete({id});
+
+        return toConferenceDto(conference);
+    }
 }
