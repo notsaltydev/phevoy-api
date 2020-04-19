@@ -107,4 +107,20 @@ export class ConferenceService {
 
         return conferences.map((conference: ConferenceEntity) => toConferenceDto(conference));
     }
+
+    async findOneConferenceById(id: string): Promise<ConferenceDto> {
+        const conference: ConferenceEntity = await this.conferenceRepository.findOne({
+            where: {id},
+            relations: ['owner']
+        });
+
+        if (!conference) {
+            throw new HttpException(
+                `Conference doesn't exist`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return toConferenceDto(conference);
+    }
 }

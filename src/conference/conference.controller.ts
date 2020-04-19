@@ -29,10 +29,17 @@ export class ConferenceController {
     }
 
     @Get(':id/schedule')
+    @UseGuards(AuthGuard())
     async findAllConferences(@Param('id', new ParseUUIDPipe()) scheduleId: string): Promise<ConferenceListDto> {
         const conferences: ConferenceDto[] = await this.conferenceService.findAllConferences(scheduleId);
 
         return {conferences}
+    }
+
+    @Get(':id')
+    @UseGuards(AuthGuard())
+    async findOneConferenceById(@Param('id', new ParseUUIDPipe()) conferenceId: string): Promise<ConferenceDto> {
+        return await this.conferenceService.findOneConferenceById(conferenceId);
     }
 
     @Delete(':id')
