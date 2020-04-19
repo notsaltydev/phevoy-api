@@ -7,6 +7,7 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { toUserDto } from "../shared/mapper";
 import { comparePasswords } from "../shared/utils";
+import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
 
 @Injectable()
 export class UsersService {
@@ -16,8 +17,9 @@ export class UsersService {
     ) {
     }
 
-    async findOne(options?: object): Promise<UserDto> {
-        const user = await this.userRepository.findOne(options);
+    async findOne(options?: FindOneOptions<UserEntity>): Promise<UserDto> {
+        const user: UserEntity = await this.userRepository.findOne(options);
+        
         return toUserDto(user);
     }
 
