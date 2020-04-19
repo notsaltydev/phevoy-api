@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, HttpCode, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { CreateConferenceDto } from "./dto/create-conference.dto";
 import { ConferenceDto } from "./dto/conference.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { ConferenceService } from "./conference.service";
+import { ConferenceListDto } from "./dto/conference-list.dto";
 
 @Controller('conference')
 export class ConferenceController {
@@ -25,6 +26,13 @@ export class ConferenceController {
         @Body() conferenceDto: ConferenceDto
     ): Promise<ConferenceDto> {
         return await this.conferenceService.updateConference(conferenceId, conferenceDto);
+    }
+
+    @Get(':id/schedule')
+    async findAllConferences(@Param('id', new ParseUUIDPipe()) scheduleId: string): Promise<ConferenceListDto> {
+        const conferences: ConferenceDto[] = await this.conferenceService.findAllConferences(scheduleId);
+
+        return {conferences}
     }
 
     @Delete(':id')

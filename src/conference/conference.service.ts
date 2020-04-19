@@ -86,4 +86,25 @@ export class ConferenceService {
 
         return toConferenceDto(conference);
     }
+
+    async findAllConferences(id: string): Promise<ConferenceDto[]> {
+        const schedule: ScheduleEntity = await this.scheduleRepository.findOne({
+            where: {id},
+            relations: ['conferences', 'owner']
+        });
+
+        if (!schedule) {
+            throw new HttpException(
+                `Schedule doesn't exist`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        const conferences: ConferenceEntity[] = await this.conferenceRepository.find({
+            where: {schedule},
+            relations: ['owner']
+        });
+
+        return conferences.map((conference: ConferenceEntity) => toConferenceDto(conference));
+    }
 }
