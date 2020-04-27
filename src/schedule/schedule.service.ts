@@ -47,8 +47,7 @@ export class ScheduleService {
 
         schedule = {
             id,
-            date,
-            updatedOn: new Date()
+            date
         }
 
         await this.scheduleRepository.update({id}, schedule);

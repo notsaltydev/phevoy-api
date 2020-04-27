@@ -59,8 +59,7 @@ export class ConferenceService {
             name,
             description,
             startDate,
-            endDate,
-            updatedOn: new Date()
+            endDate
         }
 
         await this.conferenceRepository.update({id}, conference);
