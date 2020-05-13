@@ -14,7 +14,7 @@
     "username": "phevoy",
     "password": "password123",
     "database": "phevoy_db",
-    "synchronize": false,
+    "synchronize": true,
     "logging": true,
     "entities": [
       "src/**/*.entity.ts"

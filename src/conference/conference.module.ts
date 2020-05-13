@@ -6,13 +6,12 @@ import { ConferenceController } from './conference.controller';
 import { ConferenceService } from './conference.service';
 import { AuthModule } from "../auth/auth.module";
 import { UsersModule } from "../users/users.module";
-import { ScheduleEntity } from "../schedule/entity/schedule.entity";
 
 @Module({
     imports: [
         AuthModule,
         UsersModule,
-        TypeOrmModule.forFeature([ConferenceEntity, ScheduleEntity, UserEntity])
+        TypeOrmModule.forFeature([ConferenceEntity, UserEntity])
     ],
     controllers: [ConferenceController],
     providers: [ConferenceService]

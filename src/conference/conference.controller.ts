@@ -1,22 +1,37 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    ParseUUIDPipe,
+    Post,
+    Put,
+    Req,
+    UseGuards
+} from '@nestjs/common';
 import { CreateConferenceDto } from "./dto/create-conference.dto";
 import { ConferenceDto } from "./dto/conference.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { ConferenceService } from "./conference.service";
 import { ConferenceListDto } from "./dto/conference-list.dto";
+import { UserDto } from "../users/dto/user.dto";
 
 @Controller('conference')
 export class ConferenceController {
     constructor(private conferenceService: ConferenceService) {
     }
 
-    @Post(':id')
+    @Post()
     @UseGuards(AuthGuard())
     async createConference(
-        @Param('id', new ParseUUIDPipe()) scheduleId: string,
+        @Req() req: any,
         @Body() createConferenceDto: CreateConferenceDto,
     ): Promise<ConferenceDto> {
-        return await this.conferenceService.createConference(scheduleId, createConferenceDto);
+        const user = req.user as UserDto;
+
+        return await this.conferenceService.createConference(user, createConferenceDto);
     }
 
     @Put(':id')
@@ -28,17 +43,22 @@ export class ConferenceController {
         return await this.conferenceService.updateConference(conferenceId, conferenceDto);
     }
 
-    @Get(':id/schedule')
+    @Get()
     @UseGuards(AuthGuard())
-    async findAllConferences(@Param('id', new ParseUUIDPipe()) scheduleId: string): Promise<ConferenceListDto> {
-        const conferences: ConferenceDto[] = await this.conferenceService.findAllConferences(scheduleId);
+    async findAllConferences(
+        @Req() req: any
+    ): Promise<ConferenceListDto> {
+        const user = req.user as UserDto;
+        const conferences: ConferenceDto[] = await this.conferenceService.findAllConferences(user);
 
         return {conferences}
     }
 
     @Get(':id')
     @UseGuards(AuthGuard())
-    async findOneConferenceById(@Param('id', new ParseUUIDPipe()) conferenceId: string): Promise<ConferenceDto> {
+    async findOneConferenceById(
+        @Param('id', new ParseUUIDPipe()) conferenceId: string
+    ): Promise<ConferenceDto> {
         return await this.conferenceService.findOneConferenceById(conferenceId);
     }
 

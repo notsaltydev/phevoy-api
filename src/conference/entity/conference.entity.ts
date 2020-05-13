@@ -1,5 +1,4 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { ScheduleEntity } from "../../schedule/entity/schedule.entity";
 import { UserEntity } from "../../users/entity/user.entity";
 
 @Entity('conference')
@@ -14,7 +13,4 @@ export class ConferenceEntity {
 
     @ManyToOne(type => UserEntity)
     owner?: UserEntity;
-
-    @ManyToOne(type => ScheduleEntity, todo => todo.conferences)
-    schedule?: ScheduleEntity;
 }

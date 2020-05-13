@@ -1,20 +1,7 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    ParseUUIDPipe,
-    Post,
-    Put,
-    Req,
-    UseGuards
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Req, UseGuards } from '@nestjs/common';
 import { ScheduleService } from "./schedule.service";
 import { AuthGuard } from "@nestjs/passport";
 import { UserDto } from "../users/dto/user.dto";
-import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { ScheduleDto } from "./dto/schedule.dto";
 import { ScheduleListDto } from "./dto/schedule-list.dto";
 
@@ -22,26 +9,6 @@ import { ScheduleListDto } from "./dto/schedule-list.dto";
 export class ScheduleController {
 
     constructor(private readonly scheduleService: ScheduleService) {
-    }
-
-    @Post()
-    @UseGuards(AuthGuard())
-    async create(
-        @Body() createScheduleDto: CreateScheduleDto,
-        @Req() req: any,
-    ): Promise<ScheduleDto> {
-        const user = req.user as UserDto;
-
-        return await this.scheduleService.createSchedule(user, createScheduleDto);
-    }
-
-    @Put(':id')
-    @UseGuards(AuthGuard())
-    async updateSchedule(
-        @Param('id', new ParseUUIDPipe()) scheduleId: string,
-        @Body() scheduleDto: ScheduleDto
-    ): Promise<ScheduleDto> {
-        return await this.scheduleService.updateSchedule(scheduleId, scheduleDto);
     }
 
     @Get()
@@ -59,12 +26,5 @@ export class ScheduleController {
         @Param('id', new ParseUUIDPipe()) scheduleId: string,
     ): Promise<ScheduleDto> {
         return await this.scheduleService.findOneScheduleById(scheduleId);
-    }
-
-    @Delete(':id')
-    @HttpCode(204)
-    @UseGuards(AuthGuard())
-    async deleteSchedule(@Param('id', new ParseUUIDPipe()) scheduleId: string): Promise<ScheduleDto> {
-        return await this.scheduleService.deleteSchedule(scheduleId);
     }
 }

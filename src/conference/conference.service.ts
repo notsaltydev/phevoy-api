@@ -4,37 +4,31 @@ import { ConferenceDto } from "./dto/conference.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ConferenceEntity } from "./entity/conference.entity";
 import { Repository } from "typeorm";
-import { ScheduleEntity } from "../schedule/entity/schedule.entity";
-import { UserEntity } from "../users/entity/user.entity";
 import { toConferenceDto } from "../shared/mapper";
+import { UsersService } from "../users/users.service";
+import { UserDto } from "../users/dto/user.dto";
 
 @Injectable()
 export class ConferenceService {
     constructor(
         @InjectRepository(ConferenceEntity)
-        private conferenceRepository: Repository<ConferenceEntity>,
-        @InjectRepository(ScheduleEntity)
-        private scheduleRepository: Repository<ScheduleEntity>
+        private readonly conferenceRepository: Repository<ConferenceEntity>,
+        private readonly usersService: UsersService,
     ) {
     }
 
-    async createConference(scheduleId: string, createConferenceDto: CreateConferenceDto): Promise<ConferenceDto> {
+    async createConference(user: UserDto, createConferenceDto: CreateConferenceDto): Promise<ConferenceDto> {
+        const username: string = user.username;
         const {name, description, startDate, endDate} = createConferenceDto;
 
-        const schedule: ScheduleEntity = await this.scheduleRepository.findOne({
-            where: {id: scheduleId},
-            relations: ['conferences', 'owner']
-        });
-
-        const owner: UserEntity = schedule.owner;
+        const owner = await this.usersService.findOne({where: {username}});
 
         const conference: ConferenceEntity = await this.conferenceRepository.create({
             name,
             description,
             startDate,
             endDate,
-            owner,
-            schedule
+            owner
         });
 
         await this.conferenceRepository.save(conference);
@@ -86,21 +80,13 @@ export class ConferenceService {
         return toConferenceDto(conference);
     }
 
-    async findAllConferences(id: string): Promise<ConferenceDto[]> {
-        const schedule: ScheduleEntity = await this.scheduleRepository.findOne({
-            where: {id},
-            relations: ['conferences', 'owner']
-        });
+    async findAllConferences(user: UserDto): Promise<ConferenceDto[]> {
+        const username: string = user.username;
 
-        if (!schedule) {
-            throw new HttpException(
-                `Schedule doesn't exist`,
-                HttpStatus.BAD_REQUEST,
-            );
-        }
+        const owner = await this.usersService.findOne({where: {username}});
 
         const conferences: ConferenceEntity[] = await this.conferenceRepository.find({
-            where: {schedule},
+            where: {owner},
             relations: ['owner']
         });
 
