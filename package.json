@@ -6,7 +6,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "npm-run-all -l clean",
     "build": "nest build",
     "prebuild:server": "npm-run-all -l clean",
     "build:server": "tsc -p tsconfig.build.json",
