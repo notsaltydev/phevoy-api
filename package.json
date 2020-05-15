@@ -19,7 +19,7 @@
     "start:prod": "node dist/main",
     "start:nodemon:dev": "nodemon",
     "start:nodemon:debug": "nodemon --config nodemon-debug.json",
-    "typeorm:cli": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f ormconfig.json",
+    "typeorm:cli": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f ormconfig.js",
     "db:migration:generate": "npm-run-all -s -l clean build:server && yarn typeorm:cli migration:generate",
     "db:migration:create": "yarn typeorm:cli migration:create",
     "db:migration:revert": "yarn typeorm:cli migration:revert",

@@ -1,9 +1,12 @@
 version: '3'
 services:
-  db:
-    container_name: todo_db
+  phevoy_db:
+    container_name: phevoy_db
     image: postgres:10.7
-    volumes:
-      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_HOST: ${DB_HOST}
     ports:
       - '5445:5432'
