@@ -1,0 +1,128 @@
+variables:
+  IMAGE_PATH: $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME
+
+stages:
+  - build
+  - deploy
+
+build_image:
+  stage: build
+  image: docker:git
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build -t $IMAGE_PATH:$CI_COMMIT_SHORT_SHA .
+    - docker push $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
+  only:
+    - branches
+
+deploy_staging:
+  stage: deploy
+  image: kroniak/ssh-client:3.6
+  script:
+    # add the server as a known host
+    - mkdir ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    # log into Docker registry
+    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    # stop container, remove image.
+    - ssh deployer@phevoy.pl "docker stop phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rm phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    # start new container
+    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:${CI_ENVIRONMENT_SLUG}.api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: http://${CI_ENVIRONMENT_SLUG}.api.phevoy.pl
+    on_stop: stop_staging
+  only:
+    - branches
+  except:
+    - master
+
+stop_staging:
+  stage: deploy
+  image: kroniak/ssh-client:3.6
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # add the server as a known host
+    - mkdir ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    # log into Docker registry
+    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    # stop container, remove image.
+    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  only:
+    - branches
+  except:
+    - master
+
+deploy_prod:
+  stage: deploy
+  image: kroniak/ssh-client:3.6
+  script:
+    # add the server as a known host
+    - mkdir ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    # log into Docker registry
+    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    # stop container, remove image.
+    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    # start new container
+    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+  environment:
+    name: production
+    url: http://api.phevoy.pl
+    on_stop: stop_prod
+  only:
+    - master
+
+stop_prod:
+  stage: deploy
+  image: kroniak/ssh-client:3.6
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # add the server as a known host
+    - mkdir ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    # log into Docker registry
+    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    # stop container, remove image.
+    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+  when: manual
+  environment:
+    name: production
+    action: stop
+  only:
+    - master
