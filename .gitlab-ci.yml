@@ -38,6 +38,7 @@ deploy_staging:
     - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
     # start new container
     - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:${CI_ENVIRONMENT_SLUG}.api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+    # attach db network
     - ssh deployer@phevoy.pl "docker network connect phevoy_db_net api.phevoy.pl_${CI_COMMIT_REF_SLUG}"
   environment:
     name: review/$CI_COMMIT_REF_NAME
