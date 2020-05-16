@@ -95,7 +95,9 @@ deploy_prod:
     - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
     - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
     # start new container
-    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net --network=phevoy_db_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+    # attach db network
+    - ssh deployer@phevoy.pl "docker network connect phevoy_db_net api.phevoy.pl_${CI_COMMIT_REF_SLUG}"
   environment:
     name: production
     url: http://api.phevoy.pl
