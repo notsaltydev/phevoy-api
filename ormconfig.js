@@ -11,24 +11,25 @@ module.exports = [
         username: DB_USERNAME,
         password: DB_PASSWORD,
         database: DB_DATABASE,
-        synchronize: false,
+        synchronize: true,
         logging: true,
         entities: [
-            "src/**/*.entity.ts"
+            "dist/**/*.entity.js"
         ],
-        migrations: [
-            "src/migrations/**/*.ts"
+    migrations: [
+            "dist/migrations/**/*.js"
         ],
         subscribers: [
-            "src/subscriber/**/*.ts"
+            "dist/subscriber/**/*.js"
         ],
         cli: {
-            "entitiesDir": "src/**/*.entity.ts",
-            "migrationsDir": "src/migrations",
-            "subscribersDir": "src/subscriber"
+            entitiesDir: "dist/**/*.entity.js",
+            migrationsDir: "dist/migrations",
+            subscribersDir: "dist/subscriber"
         }
     },
     {
+        name: "defaultDev",
         type: "postgres",
         host: DB_HOST,
         port: DB_PORT,
@@ -47,7 +48,7 @@ module.exports = [
             "src/subscriber/**/*.ts"
         ],
         cli: {
-            "entitiesDir": "src",
+            "entitiesDir": "src/**/*.entity.ts",
             "migrationsDir": "src/migrations",
             "subscribersDir": "src/subscriber"
         }

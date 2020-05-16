@@ -1,13 +1,16 @@
 version: '3'
 
 services:
-  phevoy_db:
-    container_name: phevoy_db
+  postgres:
+    container_name: postgres
     image: postgres:10.7
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_HOST: ${DB_HOST}
+    volumes:
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
     ports:
-      - '5445:5432'
+      - '5432:5432'
+    networks:
+      - phevoy_db_net
+
+networks:
+  phevoy_db_net:
+    external: true
