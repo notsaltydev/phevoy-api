@@ -24,7 +24,15 @@ export class AuthService {
         };
 
         try {
-            await this.usersService.create(userDto);
+            const user = await this.usersService.create(userDto);
+            // generate and sign token
+            const token = this._createToken(user);
+
+            status = {
+                ...status,
+                username: user.username,
+                ...token
+            };
         } catch (err) {
             status = {
                 success: false,

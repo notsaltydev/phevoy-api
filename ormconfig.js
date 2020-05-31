@@ -4,7 +4,7 @@ const {DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_HOST} = process.env;
 
 module.exports = [
     {
-        name: "development",
+        name: "production",
         type: "postgres",
         host: DB_HOST,
         port: DB_PORT,
@@ -29,14 +29,38 @@ module.exports = [
         }
     },
     {
-        name: "defaultDev",
+        name: "development",
         type: "postgres",
         host: DB_HOST,
         port: DB_PORT,
         username: DB_USERNAME,
         password: DB_PASSWORD,
         database: DB_DATABASE,
-        synchronize: false,
+        synchronize: true,
+        logging: true,
+        entities: [
+            "src/**/*.entity.ts"
+        ],
+        migrations: [
+            "src/migrations/**/*.ts"
+        ],
+        subscribers: [
+            "src/subscriber/**/*.ts"
+        ],
+        cli: {
+            "entitiesDir": "src/**/*.entity.ts",
+            "migrationsDir": "src/migrations",
+            "subscribersDir": "src/subscriber"
+        }
+    },
+    {
+        type: "postgres",
+        host: DB_HOST,
+        port: DB_PORT,
+        username: DB_USERNAME,
+        password: DB_PASSWORD,
+        database: DB_DATABASE,
+        synchronize: true,
         logging: true,
         entities: [
             "src/**/*.entity.ts"
