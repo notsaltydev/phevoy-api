@@ -19,12 +19,12 @@ export class UsersService {
 
     async findOne(options?: FindOneOptions<UserEntity>): Promise<UserDto> {
         const user: UserEntity = await this.userRepository.findOne(options);
-        
+
         return toUserDto(user);
     }
 
-    async findByLogin({username, password}: LoginUserDto): Promise<UserDto> {
-        const user = await this.userRepository.findOne({where: {username}});
+    async findByLogin({email, password}: LoginUserDto): Promise<UserDto> {
+        const user = await this.userRepository.findOne({where: {email}});
 
         if (!user) {
             throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);

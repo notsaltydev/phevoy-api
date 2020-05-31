@@ -16,7 +16,7 @@ module.exports = [
         entities: [
             "dist/**/*.entity.js"
         ],
-    migrations: [
+        migrations: [
             "dist/migrations/**/*.js"
         ],
         subscribers: [
