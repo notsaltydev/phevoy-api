@@ -31,18 +31,18 @@ deploy_staging:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     # log into Docker registry
-    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.s1.adamnieslony.com"
     # stop container, remove image.
-    - ssh deployer@phevoy.pl "docker stop phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rm phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker stop api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rm api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
     # start new container
-    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:${CI_ENVIRONMENT_SLUG}.api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker run --label traefik.frontend.rule=Host:${CI_ENVIRONMENT_SLUG}.s1.api.phevoy.com --name api.phevoy.com_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
     # attach db network
-    - ssh deployer@phevoy.pl "docker network connect phevoy_db_net api.phevoy.pl_${CI_COMMIT_REF_SLUG}"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker network connect phevoy_db_net api.phevoy.com_${CI_COMMIT_REF_SLUG}"
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://${CI_ENVIRONMENT_SLUG}.api.phevoy.pl
+    url: http://${CI_ENVIRONMENT_SLUG}.s1.api.phevoy.pl
     on_stop: stop_staging
   only:
     - branches
@@ -63,11 +63,11 @@ stop_staging:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     # log into Docker registry
-    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.s1.adamnieslony.com"
     # stop container, remove image.
-    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker stop api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rm api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
   when: manual
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -89,18 +89,18 @@ deploy_prod:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     # log into Docker registry
-    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.s1.adamnieslony.com"
     # stop container, remove image.
-    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker stop api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rm api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
     # start new container
-    - ssh deployer@phevoy.pl "docker run --label traefik.frontend.rule=Host:api.phevoy.pl --name api.phevoy.pl_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker run --label traefik.frontend.rule=Host:api.phevoy.com --name api.phevoy.com_${CI_COMMIT_REF_SLUG} --network=traefik_net -d $IMAGE_PATH:$CI_COMMIT_SHORT_SHA"
     # attach db network
-    - ssh deployer@phevoy.pl "docker network connect phevoy_db_net api.phevoy.pl_${CI_COMMIT_REF_SLUG}"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker network connect phevoy_db_net api.phevoy.com_${CI_COMMIT_REF_SLUG}"
   environment:
     name: production
-    url: http://api.phevoy.pl
+    url: http://api.phevoy.com
     on_stop: stop_prod
   only:
     - master
@@ -119,11 +119,11 @@ stop_prod:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     # log into Docker registry
-    - ssh deployer@phevoy.pl "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.phevoy.pl"
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.s1.adamnieslony.com"
     # stop container, remove image.
-    - ssh deployer@phevoy.pl "docker stop api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rm api.phevoy.pl_${CI_COMMIT_REF_SLUG}" || true
-    - ssh deployer@phevoy.pl "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker stop api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rm api.phevoy.com_${CI_COMMIT_REF_SLUG}" || true
+    - ssh deployer@gitlab.s1.adamnieslony.com "docker rmi $IMAGE_PATH:$CI_COMMIT_SHORT_SHA" || true
   when: manual
   environment:
     name: production
