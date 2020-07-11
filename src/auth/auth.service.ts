@@ -8,12 +8,17 @@ import { CreateUserDto } from "../users/dto/user-create.dto";
 import { LoginUserDto } from "../users/dto/user-login.dto";
 import { UserDto } from "../users/dto/user.dto";
 import { jwtConstants } from "./constans";
+import { TokenDto } from "../token/dto/token.dto";
+import { TokenService } from "../token/token.service";
+import { CreateTokenDto } from "../token/dto/create-token.dto";
+import { randomStringGenerator } from "@nestjs/common/utils/random-string-generator.util";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
+        private readonly tokenService: TokenService,
     ) {
     }
 
@@ -26,10 +31,9 @@ export class AuthService {
         try {
             const user = await this.usersService.create(userDto);
             // generate and sign token
-            await this.createEmailToken(user);
             await this.sendEmailVerification(user);
 
-            const token = this._createToken(user);
+            const token = this._createJwtToken(user);
 
             status = {
                 ...status,
@@ -51,7 +55,7 @@ export class AuthService {
         const user = await this.usersService.findByLogin(loginUserDto);
 
         // generate and sign token
-        const token = this._createToken(user);
+        const token = this._createJwtToken(user);
 
         return {
             username: user.username,
@@ -67,15 +71,27 @@ export class AuthService {
         return user;
     }
 
-    async createEmailToken({username}: UserDto): Promise<boolean> {
-        return null;
-    }
 
     async sendEmailVerification({username}: UserDto): Promise<boolean> {
+        const emailToken: TokenDto = await this.createEmailToken(username);
+
+        console.log('emailToken', emailToken);
         return null;
     }
 
-    private _createToken({username}: UserDto): any {
+    async createEmailToken(username: string): Promise<TokenDto> {
+        const createTokenDto: CreateTokenDto = {
+            token: randomStringGenerator(),
+            status: 'not-verified',
+            timestamp: new Date()
+        };
+
+        const newToken: TokenDto = await this.tokenService.createToken(username, createTokenDto);
+
+        return newToken;
+    }
+
+    private _createJwtToken({username}: UserDto): any {
         const expiresIn = jwtConstants.expiresIn;
 
         const user: JwtPayload = {username};
