@@ -49,6 +49,7 @@ export class AuthController {
             // const isEmailVerified: boolean = await this.authService.verifyEmail(params.token);
 
             // return new ResponseSuccess('LOGIN.EMAIL_VERIFIED', isEmailVerified);
+            return null;
         } catch (error) {
             // return new ResponseError('LOGIN.ERROR', error);
         }
@@ -66,6 +67,7 @@ export class AuthController {
             // } else {
             //     return new ResponseError('REGISTRATION.EMAIL.MAIL_NOT_SENT');
             // }
+            return null;
         } catch (error) {
             // return new ResponseError('LOGIN.ERROR.SEND_EMAIL', error);
         }
@@ -81,6 +83,7 @@ export class AuthController {
             // } else {
             //     return new ResponseError('REGISTRATION.EMAIL.MAIL_NOT_SENT');
             // }
+            return null;
         } catch (error) {
             // return new ResponseError('LOGIN.ERROR.SEND_EMAIL', error);
         }

@@ -6,10 +6,12 @@ import { jwtConstants, passportConstans } from "./constans";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { UsersModule } from "../users/users.module";
+import { TokenModule } from "../token/token.module";
 
 @Module({
     imports: [
         UsersModule,
+        TokenModule,
         PassportModule.register({
             defaultStrategy: passportConstans.defaultStrategy,
             property: 'user',

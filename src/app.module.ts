@@ -8,8 +8,11 @@ import { ConnectionOptions } from "typeorm";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ScheduleModule } from './schedule/schedule.module';
 import { ConferenceModule } from './conference/conference.module';
+import { TokenModule } from './token/token.module';
 
-@Module({})
+@Module({
+  imports: [TokenModule]
+})
 export class AppModule {
     static forRoot(connOptions: ConnectionOptions): DynamicModule {
 

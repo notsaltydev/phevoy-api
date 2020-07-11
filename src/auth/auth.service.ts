@@ -26,6 +26,9 @@ export class AuthService {
         try {
             const user = await this.usersService.create(userDto);
             // generate and sign token
+            await this.createEmailToken(user);
+            await this.sendEmailVerification(user);
+
             const token = this._createToken(user);
 
             status = {
@@ -62,6 +65,14 @@ export class AuthService {
             throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
         }
         return user;
+    }
+
+    async createEmailToken({username}: UserDto): Promise<boolean> {
+        return null;
+    }
+
+    async sendEmailVerification({username}: UserDto): Promise<boolean> {
+        return null;
     }
 
     private _createToken({username}: UserDto): any {
