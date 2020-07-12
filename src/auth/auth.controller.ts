@@ -73,7 +73,7 @@ export class AuthController {
             if (isEmailSent) {
                 return {message: 'LOGIN.EMAIL_RESENT', success: true};
             } else {
-                return {message: 'REGISTRATION.EMAIL.MAIL_NOT_SENT', success: false};
+                return {message: 'VERIFICATION.EMAIL.MAIL_NOT_SENT', success: false};
             }
         } catch (error) {
             return {message: 'LOGIN.ERROR.SEND_EMAIL', success: false};
@@ -81,18 +81,17 @@ export class AuthController {
     }
 
     @Get('forgot-password/:email')
-    public sendEmailForgotPassword(@Param() params: any): Promise<any> {
+    public async sendEmailForgotPasswordVerification(@Param('email') email: string): Promise<any> {
         try {
-            // const isEmailForgotPasswordSent = await this.authService.sendEmailForgotPassword(params.email);
+            const isEmailForgotPasswordSent = await this.authService.sendEmailForgotPasswordVerification(email);
 
-            // if (isEmailForgotPasswordSent) {
-            //     return new ResponseSuccess('LOGIN.EMAIL_RESENT', null);
-            // } else {
-            //     return new ResponseError('REGISTRATION.EMAIL.MAIL_NOT_SENT');
-            // }
-            return null;
+            if (isEmailForgotPasswordSent) {
+                return {message: 'FORGOT_PASSWORD.EMAIL_FORGOT_PASSWORD.MAIL_SENT', success: true};
+            } else {
+                return {message: 'FORGOT_PASSWORD.EMAIL_FORGOT_PASSWORD.MAIL_NOT_SENT', success: false};
+            }
         } catch (error) {
-            // return new ResponseError('LOGIN.ERROR.SEND_EMAIL', error);
+            return {message: 'FORGOT_PASSWORD.ERROR.SEND_EMAIL', success: false};
         }
     }
 

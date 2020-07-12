@@ -1,5 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 import { UserDto } from "../../users/dto/user.dto";
+import { TokenType } from "../interfaces/token-type.enum";
 
 export class TokenDto {
     @IsNotEmpty()
@@ -13,6 +14,9 @@ export class TokenDto {
 
     @IsNotEmpty()
     timestamp: Date;
+
+    @IsNotEmpty()
+    type: TokenType;
 
     createdOn?: Date;
     updatedOn?: Date;

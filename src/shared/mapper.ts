@@ -43,13 +43,14 @@ export const toConferenceDto = (data: ConferenceEntity): ConferenceDto => {
 };
 
 export const toTokenDto = (data: TokenEntity): TokenDto => {
-    const {id, token, status, timestamp, createdOn, updatedOn, owner} = data;
+    const {id, token, status, timestamp, type, createdOn, updatedOn, owner} = data;
 
     let tokenDto: TokenDto = {
         id,
         token,
         status,
         timestamp,
+        type,
         createdOn,
         updatedOn,
         owner: owner ? toUserDto(owner) : null,

@@ -1,4 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
+import { TokenType } from "../interfaces/token-type.enum";
 
 export class CreateTokenDto {
     @IsNotEmpty()
@@ -9,4 +10,7 @@ export class CreateTokenDto {
 
     @IsNotEmpty()
     timestamp: Date;
+
+    @IsNotEmpty()
+    type: TokenType;
 }

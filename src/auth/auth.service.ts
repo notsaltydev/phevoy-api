@@ -12,6 +12,7 @@ import { TokenDto } from "../token/dto/token.dto";
 import { TokenService } from "../token/token.service";
 import { CreateTokenDto } from "../token/dto/create-token.dto";
 import { randomStringGenerator } from "@nestjs/common/utils/random-string-generator.util";
+import { TokenType } from "../token/interfaces/token-type.enum";
 
 @Injectable()
 export class AuthService {
@@ -57,7 +58,10 @@ export class AuthService {
 
     async verifyEmail(token: string): Promise<boolean> {
         try {
-            const emailVerificationToken: TokenDto = await this.tokenService.findOne({where: {token}, relations: ['owner']});
+            const emailVerificationToken: TokenDto = await this.tokenService.findOne({
+                where: {token, type: TokenType.EMAIL},
+                relations: ['owner']
+            });
 
             if (emailVerificationToken) {
                 const owner: UserDto = await this.usersService.findOne({where: {id: emailVerificationToken.owner.id}});
@@ -67,6 +71,18 @@ export class AuthService {
             }
         } catch (error) {
             return false
+        }
+    }
+
+    async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email);
+
+        if (this._hasExistingToken(existingToken)) {
+            return existingToken;
+        } else {
+            const newEmailToken: TokenDto = await this._createEmailToken(username);
+            // todo: Send e-mail message.
+            return newEmailToken;
         }
     }
 
@@ -81,6 +97,29 @@ export class AuthService {
         }
     }
 
+    async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {
+        try {
+            const user: UserDto = await this.usersService.findOne({where: {email}});
+            const token: TokenDto = await this.sendPasswordForgotTokenVerification(user);
+
+            return !!token
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email);
+
+        if (this._hasExistingToken(existingToken)) {
+            return existingToken;
+        } else {
+            const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
+            // todo: Send e-mail message.
+            return newEmailToken;
+        }
+    }
+
     async validateUser(payload: JwtPayload): Promise<UserDto> {
         const user = await this.usersService.findByPayload(payload);
 
@@ -91,24 +130,25 @@ export class AuthService {
         return user;
     }
 
-
-    async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
-        const existingToken: TokenDto = await this._checkExistingToken(email);
-
-        if (this._hasExistingToken(existingToken)) {
-            return existingToken;
-        } else {
-            const newEmailToken: TokenDto = await this.createEmailToken(username);
-
-            return newEmailToken;
-        }
-    }
-
-    async createEmailToken(username: string): Promise<TokenDto> {
+    private async _createEmailToken(username: string): Promise<TokenDto> {
         const createTokenDto: CreateTokenDto = {
             token: randomStringGenerator(),
             status: 'not-verified',
-            timestamp: new Date()
+            timestamp: new Date(),
+            type: TokenType.EMAIL
+        };
+
+        const newToken: TokenDto = await this.tokenService.createToken(username, createTokenDto);
+
+        return newToken;
+    }
+
+    private async _createForgotPasswordToken(username: string): Promise<TokenDto> {
+        const createTokenDto: CreateTokenDto = {
+            token: randomStringGenerator(),
+            status: 'not-verified',
+            timestamp: new Date(),
+            type: TokenType.PASSWORD
         };
 
         const newToken: TokenDto = await this.tokenService.createToken(username, createTokenDto);
@@ -119,6 +159,7 @@ export class AuthService {
     private async _checkExistingToken(email: string): Promise<TokenDto | null> {
         const user: UserDto = await this.usersService.findOne({where: {email}, relations: ['tokens']});
 
+        // todo: check token type.
         if (user.tokens && !!user.tokens.length) {
             return user.tokens[0];
         }
@@ -140,6 +181,4 @@ export class AuthService {
             accessToken,
         };
     }
-
-
 }
