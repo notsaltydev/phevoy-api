@@ -6,13 +6,20 @@ import { TokenEntity } from "../token/entity/token.entity";
 import { TokenDto } from "../token/dto/token.dto";
 
 export const toUserDto = (data: UserEntity): UserDto => {
-    const {id, username, email} = data;
+    const {id, username, email, tokens} = data;
 
     let userDto: UserDto = {
         id,
         username,
         email,
     };
+
+    if (tokens) {
+        userDto = {
+            ...userDto,
+            tokens: tokens.map((token: TokenEntity) => toTokenDto(token)),
+        };
+    }
 
     return userDto;
 };
@@ -45,7 +52,7 @@ export const toTokenDto = (data: TokenEntity): TokenDto => {
         timestamp,
         createdOn,
         updatedOn,
-        owner
+        owner: owner ? toUserDto(owner) : null,
     };
 
     return tokenDto;

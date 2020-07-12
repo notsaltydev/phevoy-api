@@ -6,6 +6,7 @@ import {
     HttpException,
     HttpStatus,
     Param,
+    ParseUUIDPipe,
     Post,
     Req,
     UseGuards,
@@ -17,6 +18,8 @@ import { JwtPayload } from "./interfaces/jwt-payload.interface";
 import { CreateUserDto } from "../users/dto/user-create.dto";
 import { LoginUserDto } from "../users/dto/user-login.dto";
 import { AuthGuard } from "@nestjs/passport";
+import { EmailVerificationStatus } from "./interfaces/email-verification-status.interface";
+import { ResendEmailVerificationStatus } from "./interfaces/resend-email-verification-status.interface";
 
 @Controller('auth')
 export class AuthController {
@@ -44,32 +47,36 @@ export class AuthController {
     }
 
     @Get('verify/:token')
-    public async verifyEmail(@Param() params: any): Promise<any> {
+    public async verifyEmail(
+        @Param('token', new ParseUUIDPipe()) token: string
+    ): Promise<EmailVerificationStatus> {
         try {
-            // const isEmailVerified: boolean = await this.authService.verifyEmail(params.token);
+            const isEmailVerified: boolean = await this.authService.verifyEmail(token);
 
-            // return new ResponseSuccess('LOGIN.EMAIL_VERIFIED', isEmailVerified);
-            return null;
+            return {
+                message: 'LOGIN.EMAIL_VERIFIED',
+                success: true
+            };
         } catch (error) {
-            // return new ResponseError('LOGIN.ERROR', error);
+            return {
+                message: 'LOGIN.ERROR',
+                success: false
+            };
         }
     }
 
     @Get('resend-verification/:email')
-    public resendEmailVerification(@Param() params: any): Promise<any> {
+    public async resendEmailVerification(@Param('email') email: string): Promise<ResendEmailVerificationStatus> {
         try {
-            // await this.authService.createEmailToken(params.email);
+            const isEmailSent = await this.authService.resendEmailVerification(email);
 
-            // const isEmailSent = await this.authService.sendEmailVerification(params.email);
-
-            // if (isEmailSent) {
-            //     return new ResponseSuccess('LOGIN.EMAIL_RESENT', null);
-            // } else {
-            //     return new ResponseError('REGISTRATION.EMAIL.MAIL_NOT_SENT');
-            // }
-            return null;
+            if (isEmailSent) {
+                return {message: 'LOGIN.EMAIL_RESENT', success: true};
+            } else {
+                return {message: 'REGISTRATION.EMAIL.MAIL_NOT_SENT', success: false};
+            }
         } catch (error) {
-            // return new ResponseError('LOGIN.ERROR.SEND_EMAIL', error);
+            return {message: 'LOGIN.ERROR.SEND_EMAIL', success: false};
         }
     }
 
@@ -99,17 +106,17 @@ export class AuthController {
             // if (resetPassword.email && resetPassword.currentPassword) {
             //     const isValidPassword: boolean = await this.authService.checkPassword(resetPassword.email, resetPassword.currentPassword);
 
-                // if (isValidPassword) {
-                //     isNewPasswordChanged = await this.userService.setPassword(resetPassword.email, resetPassword.newPassword);
-                // } else {
-                //     return new ResponseError('RESET_PASSWORD.WRONG_CURRENT_PASSWORD');
-                // }
+            // if (isValidPassword) {
+            //     isNewPasswordChanged = await this.userService.setPassword(resetPassword.email, resetPassword.newPassword);
+            // } else {
+            //     return new ResponseError('RESET_PASSWORD.WRONG_CURRENT_PASSWORD');
+            // }
             // } else if (resetPassword.newPasswordToken) {
             //     const forgottenPasswordModel = await this.authService.getForgottenPasswordModel(resetPassword.newPasswordToken);
 
-                // isNewPasswordChanged = await this.userService.setPassword(forgottenPasswordModel.email, resetPassword.newPassword);
+            // isNewPasswordChanged = await this.userService.setPassword(forgottenPasswordModel.email, resetPassword.newPassword);
 
-                // if (isNewPasswordChanged) await forgottenPasswordModel.remove();
+            // if (isNewPasswordChanged) await forgottenPasswordModel.remove();
             // } else {
             //     return new ResponseError("RESET_PASSWORD.CHANGE_PASSWORD_ERROR");
             // }

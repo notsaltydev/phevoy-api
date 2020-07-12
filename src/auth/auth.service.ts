@@ -30,16 +30,8 @@ export class AuthService {
 
         try {
             const user = await this.usersService.create(userDto);
-            // generate and sign token
+
             await this.sendEmailVerification(user);
-
-            const token = this._createJwtToken(user);
-
-            status = {
-                ...status,
-                username: user.username,
-                ...token
-            };
         } catch (err) {
             status = {
                 success: false,
@@ -63,20 +55,53 @@ export class AuthService {
         };
     }
 
+    async verifyEmail(token: string): Promise<boolean> {
+        try {
+            const emailVerificationToken: TokenDto = await this.tokenService.findOne({where: {token}, relations: ['owner']});
+
+            if (emailVerificationToken) {
+                const owner: UserDto = await this.usersService.findOne({where: {id: emailVerificationToken.owner.id}});
+
+                // todo: Change user verification field to verified.
+                return !!owner;
+            }
+        } catch (error) {
+            return false
+        }
+    }
+
+    async resendEmailVerification(email: string): Promise<boolean> {
+        try {
+            const user: UserDto = await this.usersService.findOne({where: {email}});
+            const token: TokenDto = await this.sendEmailVerification(user);
+
+            return !!token
+        } catch (error) {
+            return false;
+        }
+    }
+
     async validateUser(payload: JwtPayload): Promise<UserDto> {
         const user = await this.usersService.findByPayload(payload);
+
         if (!user) {
             throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
         }
+
         return user;
     }
 
 
-    async sendEmailVerification({username}: UserDto): Promise<boolean> {
-        const emailToken: TokenDto = await this.createEmailToken(username);
+    async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email);
 
-        console.log('emailToken', emailToken);
-        return null;
+        if (this._hasExistingToken(existingToken)) {
+            return existingToken;
+        } else {
+            const newEmailToken: TokenDto = await this.createEmailToken(username);
+
+            return newEmailToken;
+        }
     }
 
     async createEmailToken(username: string): Promise<TokenDto> {
@@ -91,6 +116,20 @@ export class AuthService {
         return newToken;
     }
 
+    private async _checkExistingToken(email: string): Promise<TokenDto | null> {
+        const user: UserDto = await this.usersService.findOne({where: {email}, relations: ['tokens']});
+
+        if (user.tokens && !!user.tokens.length) {
+            return user.tokens[0];
+        }
+
+        return null;
+    }
+
+    private _hasExistingToken(token: TokenDto): boolean {
+        return !!token;
+    }
+
     private _createJwtToken({username}: UserDto): any {
         const expiresIn = jwtConstants.expiresIn;
 
@@ -101,4 +140,6 @@ export class AuthService {
             accessToken,
         };
     }
+
+
 }

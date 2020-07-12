@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { TokenEntity } from "./entity/token.entity";
 import { CreateTokenDto } from "./dto/create-token.dto";
+import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
 
 
 @Injectable()
@@ -16,6 +17,12 @@ export class TokenService {
         private readonly tokenRepository: Repository<TokenEntity>,
         private readonly usersService: UsersService
     ) {
+    }
+
+    async findOne(options?: FindOneOptions<TokenEntity>): Promise<TokenDto> {
+        const token: TokenEntity = await this.tokenRepository.findOne(options);
+
+        return toTokenDto(token);
     }
 
     async createToken(username: string, createTokenDto: CreateTokenDto): Promise<TokenDto> {
