@@ -181,4 +181,32 @@ export class AuthService {
             accessToken,
         };
     }
+
+    async checkUserPassword(email: string, password: string): Promise<boolean> {
+        const isValidPassword: boolean = await this.usersService.checkPassword(email, password);
+
+        return isValidPassword;
+    }
+
+    async setUserPassword(email: string, password: string): Promise<boolean> {
+        const isNewPasswordChanged: UserDto = await this.usersService.setPassword(email, password);
+
+        return !!isNewPasswordChanged;
+    }
+
+    async verifyForgottenPassword(token: string): Promise<TokenDto> {
+        console.log('token', token);
+        const forgottenPasswordVerificationToken: TokenDto = await this.tokenService.findOne({
+            where: {token, type: TokenType.PASSWORD},
+            relations: ['owner']
+        });
+
+        console.log('forgottenPasswordVerificationToken', forgottenPasswordVerificationToken);
+
+        if (!forgottenPasswordVerificationToken) {
+            throw new HttpException('Invalid Forgotten Password Token', HttpStatus.UNAUTHORIZED);
+        }
+
+        return forgottenPasswordVerificationToken;
+    }
 }

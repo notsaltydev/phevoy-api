@@ -8,6 +8,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { toUserDto } from "../shared/mapper";
 import { comparePasswords } from "../shared/utils";
 import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
+import * as bcrypt from "bcrypt";
+import { userConstans } from "./constans";
 
 @Injectable()
 export class UsersService {
@@ -21,6 +23,12 @@ export class UsersService {
         const user: UserEntity = await this.userRepository.findOne(options);
 
         return toUserDto(user);
+    }
+
+    async findOneEntity(options?: FindOneOptions<UserEntity>): Promise<UserEntity> {
+        const user: UserEntity = await this.userRepository.findOne(options);
+
+        return user;
     }
 
     async findByLogin({email, password}: LoginUserDto): Promise<UserDto> {
@@ -60,6 +68,28 @@ export class UsersService {
         });
 
         await this.userRepository.save(user);
+
+        return toUserDto(user);
+    }
+
+    async checkPassword(email: string, password: string): Promise<boolean> {
+        const user: UserEntity = await this.userRepository.findOne({where: {email}});
+
+        if (!user) throw new HttpException('LOGIN.USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+
+        return await bcrypt.compare(password, user.password);
+    }
+
+    async setPassword(email: string, newPassword: string): Promise<UserDto> {
+        let user = await this.userRepository.findOne({where: {email}, relations: ['tokens']});
+
+        if (!user) throw new HttpException('LOGIN.USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+
+        const password: string = await bcrypt.hash(newPassword, userConstans.saltOrRounds);
+
+        await this.userRepository.update({id: user.id}, {password});
+
+        user = await this.userRepository.findOne({where: {id: user.id}})
 
         return toUserDto(user);
     }

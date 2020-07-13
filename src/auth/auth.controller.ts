@@ -2,7 +2,6 @@ import {
     Body,
     Controller,
     Get,
-    HttpCode,
     HttpException,
     HttpStatus,
     Param,
@@ -20,6 +19,8 @@ import { LoginUserDto } from "../users/dto/user-login.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { EmailVerificationStatus } from "./interfaces/email-verification-status.interface";
 import { ResendEmailVerificationStatus } from "./interfaces/resend-email-verification-status.interface";
+import { ResetPasswordDto } from "../users/dto/reset-password.dto";
+import { TokenDto } from "../token/dto/token.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -96,33 +97,33 @@ export class AuthController {
     }
 
     @Post('reset-password')
-    @HttpCode(HttpStatus.OK)
-    // public async setNewPassword(@Body() resetPassword: ResetPasswordDto): Promise<any> {
-    public async setNewPassword(@Body() resetPassword: any): Promise<any> {
+    public async resetPassword(
+        @Body() resetPasswordDto: ResetPasswordDto,
+    ): Promise<any> {
         try {
-            // let isNewPasswordChanged: boolean;
+            let isNewPasswordChanged: boolean;
 
-            // if (resetPassword.email && resetPassword.currentPassword) {
-            //     const isValidPassword: boolean = await this.authService.checkPassword(resetPassword.email, resetPassword.currentPassword);
+            if (resetPasswordDto.email && resetPasswordDto.currentPassword) {
+                const isValidPassword: boolean = await this.authService.checkUserPassword(resetPasswordDto.email, resetPasswordDto.currentPassword);
 
-            // if (isValidPassword) {
-            //     isNewPasswordChanged = await this.userService.setPassword(resetPassword.email, resetPassword.newPassword);
-            // } else {
-            //     return new ResponseError('RESET_PASSWORD.WRONG_CURRENT_PASSWORD');
-            // }
-            // } else if (resetPassword.newPasswordToken) {
-            //     const forgottenPasswordModel = await this.authService.getForgottenPasswordModel(resetPassword.newPasswordToken);
+                if (isValidPassword) {
+                    isNewPasswordChanged = await this.authService.setUserPassword(resetPasswordDto.email, resetPasswordDto.newPassword);
+                } else {
+                    return {message: 'RESET_PASSWORD.WRONG_CURRENT_PASSWORD', success: false};
+                }
+            } else if (resetPasswordDto.newPasswordToken) {
+                console.log('resetPasswordDto', resetPasswordDto);
+                const verifyForgottenPassword: TokenDto = await this.authService.verifyForgottenPassword(resetPasswordDto.newPasswordToken);
 
-            // isNewPasswordChanged = await this.userService.setPassword(forgottenPasswordModel.email, resetPassword.newPassword);
+                console.log('verifyForgottenPassword', verifyForgottenPassword);
+                isNewPasswordChanged = await this.authService.setUserPassword(verifyForgottenPassword.owner.email, resetPasswordDto.newPassword);
+            } else {
+                return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
+            }
 
-            // if (isNewPasswordChanged) await forgottenPasswordModel.remove();
-            // } else {
-            //     return new ResponseError("RESET_PASSWORD.CHANGE_PASSWORD_ERROR");
-            // }
-
-            // return new ResponseSuccess("RESET_PASSWORD.PASSWORD_CHANGED", isNewPasswordChanged);
+            return {message: 'RESET_PASSWORD.PASSWORD_CHANGED', success: !!isNewPasswordChanged};
         } catch (error) {
-            // return new ResponseError("RESET_PASSWORD.CHANGE_PASSWORD_ERROR", error);
+            return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
         }
     }
 

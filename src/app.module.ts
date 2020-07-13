@@ -16,8 +16,6 @@ import { TokenModule } from './token/token.module';
 export class AppModule {
     static forRoot(connOptions: ConnectionOptions): DynamicModule {
 
-        console.log('connOptions', connOptions);
-
         return {
             module: AppModule,
             controllers: [AppController],

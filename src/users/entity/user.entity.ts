@@ -1,5 +1,5 @@
 import {
-    BeforeInsert,
+    BeforeInsert, BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { TokenEntity } from "../../token/entity/token.entity";
+import { userConstans } from "../constans";
 
 @Entity('users')
 export class UserEntity {
@@ -23,7 +24,8 @@ export class UserEntity {
     tokens?: TokenEntity[];
 
     @BeforeInsert()
+    @BeforeUpdate()
     async hashPassword() {
-        this.password = await bcrypt.hash(this.password, 10);
+        this.password = await bcrypt.hash(this.password, userConstans.saltOrRounds);
     }
 }
