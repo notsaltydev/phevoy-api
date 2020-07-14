@@ -21,6 +21,8 @@ import { EmailVerificationStatus } from "./interfaces/email-verification-status.
 import { ResendEmailVerificationStatus } from "./interfaces/resend-email-verification-status.interface";
 import { ResetPasswordDto } from "../users/dto/reset-password.dto";
 import { TokenDto } from "../token/dto/token.dto";
+import { SendEmailForgotPasswordStatus } from "./interfaces/send-email-forgot-password-status.interface";
+import { ResetPasswordStatus } from "./interfaces/reset-password-status.interface";
 
 @Controller('auth')
 export class AuthController {
@@ -82,7 +84,7 @@ export class AuthController {
     }
 
     @Get('forgot-password/:email')
-    public async sendEmailForgotPasswordVerification(@Param('email') email: string): Promise<any> {
+    public async sendEmailForgotPasswordVerification(@Param('email') email: string): Promise<SendEmailForgotPasswordStatus> {
         try {
             const isEmailForgotPasswordSent = await this.authService.sendEmailForgotPasswordVerification(email);
 
@@ -99,23 +101,13 @@ export class AuthController {
     @Post('reset-password')
     public async resetPassword(
         @Body() resetPasswordDto: ResetPasswordDto,
-    ): Promise<any> {
+    ): Promise<ResetPasswordStatus> {
         try {
             let isNewPasswordChanged: boolean;
 
-            if (resetPasswordDto.email && resetPasswordDto.currentPassword) {
-                const isValidPassword: boolean = await this.authService.checkUserPassword(resetPasswordDto.email, resetPasswordDto.currentPassword);
-
-                if (isValidPassword) {
-                    isNewPasswordChanged = await this.authService.setUserPassword(resetPasswordDto.email, resetPasswordDto.newPassword);
-                } else {
-                    return {message: 'RESET_PASSWORD.WRONG_CURRENT_PASSWORD', success: false};
-                }
-            } else if (resetPasswordDto.newPasswordToken) {
-                console.log('resetPasswordDto', resetPasswordDto);
+            if (resetPasswordDto.newPasswordToken) {
                 const verifyForgottenPassword: TokenDto = await this.authService.verifyForgottenPassword(resetPasswordDto.newPasswordToken);
 
-                console.log('verifyForgottenPassword', verifyForgottenPassword);
                 isNewPasswordChanged = await this.authService.setUserPassword(verifyForgottenPassword.owner.email, resetPasswordDto.newPassword);
             } else {
                 return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};

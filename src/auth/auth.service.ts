@@ -77,7 +77,7 @@ export class AuthService {
     async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
         const existingToken: TokenDto = await this._checkExistingToken(email);
 
-        if (this._hasExistingToken(existingToken)) {
+        if (this._hasExistingToken(existingToken) && existingToken.type === TokenType.EMAIL) {
             return existingToken;
         } else {
             const newEmailToken: TokenDto = await this._createEmailToken(username);
@@ -108,18 +108,6 @@ export class AuthService {
         }
     }
 
-    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
-        const existingToken: TokenDto = await this._checkExistingToken(email);
-
-        if (this._hasExistingToken(existingToken)) {
-            return existingToken;
-        } else {
-            const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
-            // todo: Send e-mail message.
-            return newEmailToken;
-        }
-    }
-
     async validateUser(payload: JwtPayload): Promise<UserDto> {
         const user = await this.usersService.findByPayload(payload);
 
@@ -128,6 +116,43 @@ export class AuthService {
         }
 
         return user;
+    }
+
+    async checkUserPassword(email: string, password: string): Promise<boolean> {
+        const isValidPassword: boolean = await this.usersService.checkPassword(email, password);
+
+        return isValidPassword;
+    }
+
+    async setUserPassword(email: string, password: string): Promise<boolean> {
+        const isNewPasswordChanged: UserDto = await this.usersService.setPassword(email, password);
+
+        return !!isNewPasswordChanged;
+    }
+
+    async verifyForgottenPassword(token: string): Promise<TokenDto> {
+        const forgottenPasswordVerificationToken: TokenDto = await this.tokenService.findOne({
+            where: {token, type: TokenType.PASSWORD},
+            relations: ['owner']
+        });
+
+        if (!forgottenPasswordVerificationToken) {
+            throw new HttpException('Invalid Forgotten Password Token', HttpStatus.UNAUTHORIZED);
+        }
+
+        return forgottenPasswordVerificationToken;
+    }
+
+    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email);
+
+        if (this._hasExistingToken(existingToken) && existingToken.type === TokenType.PASSWORD) {
+            return existingToken;
+        } else {
+            const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
+            // todo: Send e-mail message.
+            return newEmailToken;
+        }
     }
 
     private async _createEmailToken(username: string): Promise<TokenDto> {
@@ -180,33 +205,5 @@ export class AuthService {
             expiresIn,
             accessToken,
         };
-    }
-
-    async checkUserPassword(email: string, password: string): Promise<boolean> {
-        const isValidPassword: boolean = await this.usersService.checkPassword(email, password);
-
-        return isValidPassword;
-    }
-
-    async setUserPassword(email: string, password: string): Promise<boolean> {
-        const isNewPasswordChanged: UserDto = await this.usersService.setPassword(email, password);
-
-        return !!isNewPasswordChanged;
-    }
-
-    async verifyForgottenPassword(token: string): Promise<TokenDto> {
-        console.log('token', token);
-        const forgottenPasswordVerificationToken: TokenDto = await this.tokenService.findOne({
-            where: {token, type: TokenType.PASSWORD},
-            relations: ['owner']
-        });
-
-        console.log('forgottenPasswordVerificationToken', forgottenPasswordVerificationToken);
-
-        if (!forgottenPasswordVerificationToken) {
-            throw new HttpException('Invalid Forgotten Password Token', HttpStatus.UNAUTHORIZED);
-        }
-
-        return forgottenPasswordVerificationToken;
     }
 }
