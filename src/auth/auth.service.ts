@@ -13,6 +13,24 @@ import { TokenService } from "../token/token.service";
 import { CreateTokenDto } from "../token/dto/create-token.dto";
 import { randomStringGenerator } from "@nestjs/common/utils/random-string-generator.util";
 import { TokenType } from "../token/interfaces/token-type.enum";
+import { createTransport } from "nodemailer";
+import * as Mail from "nodemailer/lib/mailer";
+
+export interface SMTPTransportConfig {
+    host: string;
+    port: number;
+    secure: boolean;
+    user: string;
+    pass: string;
+}
+
+const smtpTransportConfig: SMTPTransportConfig = {
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    user: 'phevoyapp@gmail.com',
+    pass: ''
+}
 
 @Injectable()
 export class AuthService {
@@ -79,26 +97,37 @@ export class AuthService {
             return existingToken;
         } else {
             const newEmailToken: TokenDto = await this._createEmailToken(username);
+
             // todo: Send e-mail message.
+            await this._sendEmail({
+                email,
+                clientUrl: 'https://phevoy.com',
+                token: newEmailToken.token,
+                subject: 'Verify Email',
+                text: 'Verify Email'
+            });
+
             return newEmailToken;
         }
     }
 
     async resendEmailVerification(email: string): Promise<boolean> {
-        try {
-            const user: UserDto = await this.usersService.findOne({where: {email}});
-            const token: TokenDto = await this.sendEmailVerification(user);
+        const user: UserDto = await this.usersService.findOne({where: {email}});
+        const token: TokenDto = await this.sendEmailVerification(user);
 
-            return !!token
-        } catch (error) {
-            return false;
-        }
+        return await this._sendEmail({
+            email,
+            clientUrl: 'https://phevoy.com',
+            token: token.token,
+            subject: 'Verify Email',
+            text: 'Verify Email'
+        });
     }
 
     async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {
         try {
             const user: UserDto = await this.usersService.findOne({where: {email}});
-            const token: TokenDto = await this.sendPasswordForgotTokenVerification(user);
+            const token: TokenDto = await this._sendPasswordForgotTokenVerification(user);
 
             return !!token
         } catch (error) {
@@ -114,12 +143,6 @@ export class AuthService {
         }
 
         return user;
-    }
-
-    async checkUserPassword(email: string, password: string): Promise<boolean> {
-        const isValidPassword: boolean = await this.usersService.checkPassword(email, password);
-
-        return isValidPassword;
     }
 
     async setUserPassword(email: string, password: string): Promise<boolean> {
@@ -147,14 +170,23 @@ export class AuthService {
         return token;
     }
 
-    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
+    private async _sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
         const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.PASSWORD);
 
         if (this._hasExistingToken(existingToken)) {
             return existingToken;
         } else {
             const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
+
             // todo: Send e-mail message.
+            await this._sendEmail({
+                email,
+                clientUrl: 'https://phevoy.com',
+                token: newEmailToken.token,
+                subject: 'Reset Password',
+                text: 'Reset Password'
+            });
+
             return newEmailToken;
         }
     }
@@ -199,6 +231,41 @@ export class AuthService {
     private _hasExistingToken(token: TokenDto): boolean {
         // todo: Check timestamp.
         return !!token;
+    }
+
+    private async _sendEmail(config: { email: string, token: string, clientUrl: string, subject: string, text: string }): Promise<boolean> {
+        const transporter: Mail = createTransport({
+            host: smtpTransportConfig.host,
+            port: smtpTransportConfig.port,
+            secure: smtpTransportConfig.secure, // true for 465, false for other ports
+            auth: {
+                user: smtpTransportConfig.user,
+                pass: smtpTransportConfig.pass
+            }
+        });
+
+        const mailOptions: Mail.Options = {
+            from: '"Phevoy" <' + smtpTransportConfig.user + '>',
+            to: config.email,
+            subject: config.subject,
+            text: config.text,
+            html: 'Hi! <br><br> Thanks for your registration<br><br>' +
+                '<a href=' + config.clientUrl + '/auth/email/verify/' + config.token + '>Click here to activate your account</a>'
+        };
+
+        const sent: boolean = await new Promise<boolean>(async function (resolve, reject) {
+            return transporter.sendMail(mailOptions, async (error, info) => {
+                if (error) {
+                    console.log('Message sent: %s', error);
+                    return reject(false);
+                }
+
+                console.log('Message sent: %s', info.messageId);
+                resolve(true);
+            });
+        })
+
+        return sent;
     }
 
     private _createJwtToken({username}: UserDto): { expiresIn: string, accessToken: string } {
