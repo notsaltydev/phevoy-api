@@ -13,7 +13,7 @@ export class UsersController {
 
     @Get('me')
     @UseGuards(AuthGuard(passportConstans.defaultStrategy))
-    async findUserMe(
+    public async findUserMe(
         @Req() req: any
     ): Promise<UserDto> {
         const user = req.user as UserDto;
@@ -23,7 +23,7 @@ export class UsersController {
 
     @Get(':id')
     @UseGuards(AuthGuard(passportConstans.defaultStrategy))
-    async findUserById(
+    public async findUserById(
         @Param('id', new ParseUUIDPipe()) userId: string
     ): Promise<UserDto> {
         return await this.usersService.findOne({where: {id: userId}});
@@ -31,7 +31,7 @@ export class UsersController {
 
     @Post('change-password')
     @UseGuards(AuthGuard(passportConstans.defaultStrategy))
-    async changePassword(
+    public async changePassword(
         @Body() changePasswordDto: ChangePasswordDto,
     ): Promise<ChangePasswordStatus> {
         const isValidPassword: boolean = await this.usersService.checkPassword(changePasswordDto.email, changePasswordDto.currentPassword);

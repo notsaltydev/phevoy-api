@@ -109,11 +109,13 @@ export class AuthController {
                 const verifyForgottenPassword: TokenDto = await this.authService.verifyForgottenPassword(resetPasswordDto.newPasswordToken);
 
                 isNewPasswordChanged = await this.authService.setUserPassword(verifyForgottenPassword.owner.email, resetPasswordDto.newPassword);
+
+                if(isNewPasswordChanged) await this.authService.removeForgottenPasswordToken(verifyForgottenPassword.id);
             } else {
                 return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
             }
 
-            return {message: 'RESET_PASSWORD.PASSWORD_CHANGED', success: !!isNewPasswordChanged};
+            return {message: 'RESET_PASSWORD.PASSWORD_CHANGED', success: true};
         } catch (error) {
             return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
         }

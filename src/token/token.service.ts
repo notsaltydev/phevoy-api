@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { toTokenDto } from "../shared/mapper";
 import { TokenDto } from "./dto/token.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -19,20 +19,21 @@ export class TokenService {
     ) {
     }
 
-    async findOne(options?: FindOneOptions<TokenEntity>): Promise<TokenDto> {
+    public async findOne(options?: FindOneOptions<TokenEntity>): Promise<TokenDto> {
         const token: TokenEntity = await this.tokenRepository.findOne(options);
 
         return toTokenDto(token);
     }
 
-    async createToken(username: string, createTokenDto: CreateTokenDto): Promise<TokenDto> {
-        const {token, status, timestamp} = createTokenDto;
+    public async createToken(username: string, createTokenDto: CreateTokenDto): Promise<TokenDto> {
+        const {token, status, type, timestamp} = createTokenDto;
 
         const owner = await this.usersService.findOne({where: {username}});
 
         const newToken: TokenEntity = await this.tokenRepository.create({
             token,
             status,
+            type,
             timestamp,
             owner
         });
@@ -40,5 +41,19 @@ export class TokenService {
         await this.tokenRepository.save(newToken);
 
         return toTokenDto(newToken);
+    }
+
+    public async deleteToken(id: string): Promise<TokenDto> {
+        const token: TokenEntity = await this.tokenRepository.findOne({
+            where: {id}
+        });
+
+        if (!token) {
+            throw new HttpException(`Token doesn't exist`, HttpStatus.BAD_REQUEST);
+        }
+
+        await this.tokenRepository.delete({id});
+
+        return toTokenDto(token);
     }
 }

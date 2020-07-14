@@ -75,9 +75,9 @@ export class AuthService {
     }
 
     async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
-        const existingToken: TokenDto = await this._checkExistingToken(email);
+        const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.EMAIL);
 
-        if (this._hasExistingToken(existingToken) && existingToken.type === TokenType.EMAIL) {
+        if (this._hasExistingToken(existingToken)) {
             return existingToken;
         } else {
             const newEmailToken: TokenDto = await this._createEmailToken(username);
@@ -143,10 +143,16 @@ export class AuthService {
         return forgottenPasswordVerificationToken;
     }
 
-    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
-        const existingToken: TokenDto = await this._checkExistingToken(email);
+    async removeForgottenPasswordToken(id: string): Promise<TokenDto> {
+        const token: TokenDto = await this.tokenService.deleteToken(id);
 
-        if (this._hasExistingToken(existingToken) && existingToken.type === TokenType.PASSWORD) {
+        return token;
+    }
+
+    private async sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.PASSWORD);
+
+        if (this._hasExistingToken(existingToken)) {
             return existingToken;
         } else {
             const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
@@ -181,12 +187,12 @@ export class AuthService {
         return newToken;
     }
 
-    private async _checkExistingToken(email: string): Promise<TokenDto | null> {
+    private async _checkExistingToken(email: string, tokenType: TokenType): Promise<TokenDto | null> {
         const user: UserDto = await this.usersService.findOne({where: {email}, relations: ['tokens']});
 
         // todo: check token type.
         if (user.tokens && !!user.tokens.length) {
-            return user.tokens[0];
+            return user.tokens.filter((token) => token.type == tokenType)[0];
         }
 
         return null;
