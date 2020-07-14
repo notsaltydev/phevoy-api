@@ -54,7 +54,9 @@ export class AuthController {
         @Param('token', new ParseUUIDPipe()) token: string
     ): Promise<EmailVerificationStatus> {
         try {
-            const isEmailVerified: boolean = await this.authService.verifyEmail(token);
+            const emailVerificationToken: TokenDto = await this.authService.verifyEmail(token);
+
+            if(emailVerificationToken) await this.authService.removeToken(emailVerificationToken.id);
 
             return {
                 message: 'LOGIN.EMAIL_VERIFIED',
@@ -110,7 +112,7 @@ export class AuthController {
 
                 isNewPasswordChanged = await this.authService.setUserPassword(verifyForgottenPassword.owner.email, resetPasswordDto.newPassword);
 
-                if(isNewPasswordChanged) await this.authService.removeForgottenPasswordToken(verifyForgottenPassword.id);
+                if(isNewPasswordChanged) await this.authService.removeToken(verifyForgottenPassword.id);
             } else {
                 return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
             }
@@ -124,7 +126,7 @@ export class AuthController {
 
     @Get('whoami')
     @UseGuards(AuthGuard())
-    public async testAuth(@Req() req: any): Promise<JwtPayload> {
+    public async authCheck(@Req() req: any): Promise<JwtPayload> {
         return req.user;
     }
 }

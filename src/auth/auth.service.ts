@@ -56,22 +56,20 @@ export class AuthService {
         };
     }
 
-    async verifyEmail(token: string): Promise<boolean> {
-        try {
-            const emailVerificationToken: TokenDto = await this.tokenService.findOne({
-                where: {token, type: TokenType.EMAIL},
-                relations: ['owner']
-            });
+    async verifyEmail(token: string): Promise<TokenDto> {
+        const emailVerificationToken: TokenDto = await this.tokenService.findOne({
+            where: {token, type: TokenType.EMAIL},
+            relations: ['owner']
+        });
 
-            if (emailVerificationToken) {
-                const owner: UserDto = await this.usersService.findOne({where: {id: emailVerificationToken.owner.id}});
-
-                // todo: Change user verification field to verified.
-                return !!owner;
-            }
-        } catch (error) {
-            return false
+        if (!emailVerificationToken) {
+            throw new HttpException('Invalid Email Verification Token', HttpStatus.UNAUTHORIZED);
         }
+
+        // todo: Change user verification field to verified.
+        const owner: UserDto = await this.usersService.findOne({where: {id: emailVerificationToken.owner.id}});
+
+        return emailVerificationToken;
     }
 
     async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
@@ -143,7 +141,7 @@ export class AuthService {
         return forgottenPasswordVerificationToken;
     }
 
-    async removeForgottenPasswordToken(id: string): Promise<TokenDto> {
+    async removeToken(id: string): Promise<TokenDto> {
         const token: TokenDto = await this.tokenService.deleteToken(id);
 
         return token;
@@ -199,10 +197,11 @@ export class AuthService {
     }
 
     private _hasExistingToken(token: TokenDto): boolean {
+        // todo: Check timestamp.
         return !!token;
     }
 
-    private _createJwtToken({username}: UserDto): any {
+    private _createJwtToken({username}: UserDto): { expiresIn: string, accessToken: string } {
         const expiresIn = jwtConstants.expiresIn;
 
         const user: JwtPayload = {username};
