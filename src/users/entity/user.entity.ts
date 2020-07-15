@@ -1,5 +1,15 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, } from 'typeorm';
+import {
+    BeforeInsert, BeforeUpdate,
+    Column,
+    CreateDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { TokenEntity } from "../../token/entity/token.entity";
+import { userConstans } from "../constans";
 
 @Entity('users')
 export class UserEntity {
@@ -10,8 +20,12 @@ export class UserEntity {
     @CreateDateColumn() createdOn?: Date;
     @UpdateDateColumn() updatedOn?: Date;
 
+    @OneToMany(type => TokenEntity, token => token.owner)
+    tokens?: TokenEntity[];
+
     @BeforeInsert()
+    @BeforeUpdate()
     async hashPassword() {
-        this.password = await bcrypt.hash(this.password, 10);
+        this.password = await bcrypt.hash(this.password, userConstans.saltOrRounds);
     }
 }

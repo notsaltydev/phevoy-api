@@ -13,8 +13,6 @@ import { ConferenceModule } from './conference/conference.module';
 export class AppModule {
     static forRoot(connOptions: ConnectionOptions): DynamicModule {
 
-        console.log('connOptions', connOptions);
-
         return {
             module: AppModule,
             controllers: [AppController],

@@ -8,12 +8,21 @@ import { CreateUserDto } from "../users/dto/user-create.dto";
 import { LoginUserDto } from "../users/dto/user-login.dto";
 import { UserDto } from "../users/dto/user.dto";
 import { jwtConstants } from "./constans";
+import { TokenDto } from "../token/dto/token.dto";
+import { TokenService } from "../token/token.service";
+import { CreateTokenDto } from "../token/dto/create-token.dto";
+import { randomStringGenerator } from "@nestjs/common/utils/random-string-generator.util";
+import { TokenType } from "../token/interfaces/token-type.enum";
+import { EmailService } from "../email/email.service";
+
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
+        private readonly tokenService: TokenService,
+        private readonly emailService: EmailService
     ) {
     }
 
@@ -25,14 +34,8 @@ export class AuthService {
 
         try {
             const user = await this.usersService.create(userDto);
-            // generate and sign token
-            const token = this._createToken(user);
 
-            status = {
-                ...status,
-                username: user.username,
-                ...token
-            };
+            await this.sendEmailVerification(user);
         } catch (err) {
             status = {
                 success: false,
@@ -45,10 +48,10 @@ export class AuthService {
 
     async login(loginUserDto: LoginUserDto): Promise<LoginStatus> {
         // find user in db
-        const user = await this.usersService.findByLogin(loginUserDto);
+        const user: UserDto = await this.usersService.findByLogin(loginUserDto);
 
         // generate and sign token
-        const token = this._createToken(user);
+        const token: { expiresIn: string, accessToken: string } = this._createJwtToken(user);
 
         return {
             username: user.username,
@@ -56,15 +59,164 @@ export class AuthService {
         };
     }
 
+    async verifyEmail(token: string): Promise<TokenDto> {
+        const emailVerificationToken: TokenDto = await this.tokenService.findOne({
+            where: {token, type: TokenType.EMAIL},
+            relations: ['owner']
+        });
+
+        if (!emailVerificationToken) {
+            throw new HttpException('Invalid Email Verification Token', HttpStatus.UNAUTHORIZED);
+        }
+
+        // todo: Change user verification field to verified.
+        const owner: UserDto = await this.usersService.findOne({where: {id: emailVerificationToken.owner.id}});
+
+        return emailVerificationToken;
+    }
+
+    async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.EMAIL);
+        let token: TokenDto;
+
+        if (this._hasExistingToken(existingToken)) {
+            token = existingToken;
+        } else {
+            token = await this._createEmailToken(username);
+        }
+
+        await this.emailService.sendEmail({
+            to: email,
+            from: 'no-reply@phevoy.com',
+            subject: 'Activate your Phevoy account',
+            context: {
+                username: username,
+                redirectUrl: `https://phevoy.com/activate/${token.token}`,
+            },
+            templatePath: process.cwd() + '/templates/activation/index'
+        });
+
+        return token;
+    }
+
+    async resendEmailVerification(email: string): Promise<boolean> {
+        const user: UserDto = await this.usersService.findOne({where: {email}});
+        const token: TokenDto = await this.sendEmailVerification(user);
+
+        return !!token;
+    }
+
+    async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {
+        const user: UserDto = await this.usersService.findOne({where: {email}});
+        const token: TokenDto = await this._sendPasswordForgotTokenVerification(user);
+
+        return !!token
+    }
+
     async validateUser(payload: JwtPayload): Promise<UserDto> {
-        const user = await this.usersService.findByPayload(payload);
+        const user: UserDto = await this.usersService.findByPayload(payload);
+
         if (!user) {
             throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
         }
+
         return user;
     }
 
-    private _createToken({username}: UserDto): any {
+    async setUserPassword(email: string, password: string): Promise<boolean> {
+        const isNewPasswordChanged: UserDto = await this.usersService.setPassword(email, password);
+
+        return !!isNewPasswordChanged;
+    }
+
+    async verifyForgottenPassword(token: string): Promise<TokenDto> {
+        const forgottenPasswordVerificationToken: TokenDto = await this.tokenService.findOne({
+            where: {token, type: TokenType.PASSWORD},
+            relations: ['owner']
+        });
+
+        if (!forgottenPasswordVerificationToken) {
+            throw new HttpException('Invalid Forgotten Password Token', HttpStatus.UNAUTHORIZED);
+        }
+
+        return forgottenPasswordVerificationToken;
+    }
+
+    async removeToken(id: string): Promise<TokenDto> {
+        const token: TokenDto = await this.tokenService.deleteToken(id);
+
+        return token;
+    }
+
+    private async _sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
+        const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.PASSWORD);
+        let token: TokenDto;
+
+
+        if (this._hasExistingToken(existingToken)) {
+            token = existingToken;
+        } else {
+            token = await this._createForgotPasswordToken(username);
+        }
+
+        await this.emailService.sendEmail({
+            to: email,
+            from: 'no-reply@phevoy.com',
+            subject: 'Reset your password',
+            context: {
+                username: username,
+                email: email,
+                redirectUrl: `https://phevoy.com/reset-password/${token.token}`,
+            },
+            templatePath: process.cwd() + '/templates/reset-password/index'
+        });
+
+        return token;
+    }
+
+    private async _createEmailToken(username: string): Promise<TokenDto> {
+        const createTokenDto: CreateTokenDto = {
+            token: randomStringGenerator(),
+            status: 'not-verified',
+            timestamp: new Date(),
+            type: TokenType.EMAIL
+        };
+
+        const newToken: TokenDto = await this.tokenService.createToken(username, createTokenDto);
+
+        return newToken;
+    }
+
+    private async _createForgotPasswordToken(username: string): Promise<TokenDto> {
+        const createTokenDto: CreateTokenDto = {
+            token: randomStringGenerator(),
+            status: 'not-verified',
+            timestamp: new Date(),
+            type: TokenType.PASSWORD
+        };
+
+        const newToken: TokenDto = await this.tokenService.createToken(username, createTokenDto);
+
+        return newToken;
+    }
+
+    private async _checkExistingToken(email: string, tokenType: TokenType): Promise<TokenDto | null> {
+        const user: UserDto = await this.usersService.findOne({where: {email}, relations: ['tokens']});
+
+        // todo: check token type.
+        if (user.tokens && !!user.tokens.length) {
+            return user.tokens.filter((token) => token.type == tokenType)[0];
+        }
+
+        return null;
+    }
+
+    private _hasExistingToken(token: TokenDto): boolean {
+        // todo: Check timestamp.
+        return !!token;
+    }
+
+    private _createJwtToken({username}: UserDto): { expiresIn: string, accessToken: string } {
         const expiresIn = jwtConstants.expiresIn;
 
         const user: JwtPayload = {username};
