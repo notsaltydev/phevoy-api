@@ -77,44 +77,33 @@ export class AuthService {
 
     async sendEmailVerification({username, email}: UserDto): Promise<TokenDto> {
         const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.EMAIL);
+        let token: TokenDto;
 
         if (this._hasExistingToken(existingToken)) {
-            return existingToken;
+            token = existingToken;
         } else {
-            const newEmailToken: TokenDto = await this._createEmailToken(username);
-
-            // todo: Send e-mail message.
-            await this.emailService.sendEmail({
-                to: email,
-                from: 'no-reply@meistertask.com',
-                subject: 'Activate your Phevoy account',
-                context: {
-                    clientUrl: 'https://phevoy.com',
-                    token: newEmailToken.token,
-                },
-                templatePath: process.cwd() + '/templates/activation/index'
-            });
-
-            return newEmailToken;
+            token = await this._createEmailToken(username);
         }
+
+        await this.emailService.sendEmail({
+            to: email,
+            from: 'no-reply@phevoy.com',
+            subject: 'Activate your Phevoy account',
+            context: {
+                username: username,
+                redirectUrl: `https://phevoy.com/activate/${token.token}`,
+            },
+            templatePath: process.cwd() + '/templates/activation/index'
+        });
+
+        return token;
     }
 
     async resendEmailVerification(email: string): Promise<boolean> {
         const user: UserDto = await this.usersService.findOne({where: {email}});
         const token: TokenDto = await this.sendEmailVerification(user);
 
-        const sent = await this.emailService.sendEmail({
-            to: email,
-            from: 'noreply@phevoy.com',
-            subject: 'Verify Email',
-            context: {
-                clientUrl: 'https://phevoy.com',
-                token: token.token,
-            },
-            templatePath: process.cwd() + '/templates/activation/index'
-        });
-
-        return !!sent;
+        return !!token;
     }
 
     async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {

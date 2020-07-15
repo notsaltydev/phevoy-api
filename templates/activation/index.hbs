@@ -2,8 +2,8 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Simple Transactional Email V2</title>
     <style>
         /* -------------------------------------
@@ -82,7 +82,7 @@
 
         .wrapper {
             box-sizing: border-box;
-            padding: 20px;
+            padding: 40px 50px;
         }
 
         .content-block {
@@ -158,7 +158,7 @@
             width: 100%;
         }
 
-        .btn>tbody>tr>td {
+        .btn > tbody > tr > td {
             padding-bottom: 15px;
         }
 
@@ -193,9 +193,18 @@
         }
 
         .btn-primary a {
-            background-color: #3498db;
-            border-color: #3498db;
-            color: #ffffff;
+            font-family: Avenir, 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            color: #FFFFFF;
+            border: 10px solid #442d81;
+            font-size: 17px;
+            line-height: 28px;
+            height: 48px;
+            white-space: nowrap;
+            text-align: center;
+            text-decoration: none;
+            padding: 0 20px;
+            background-color: #442d81;
         }
 
         /* -------------------------------------
@@ -229,8 +238,12 @@
             margin-top: 0;
         }
 
-        .mb0 {
-            margin-bottom: 0;
+        .pb0 {
+            padding-bottom: 0 !important;
+        }
+
+        .mb40 {
+            margin-bottom: 40px;
         }
 
         .preheader {
@@ -353,11 +366,50 @@
                 border-color: #34495e !important;
             }
         }
+
+        /* -------------------------------------
+          CUSTOM
+      ------------------------------------- */
+        .title {
+            background-repeat: no-repeat;
+            font-family: Avenir, 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            line-height: 140%;
+        }
+
+        .greeting {
+            font-family: Avenir, 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
+            color: #3D474D;
+            font-size: 17px;
+            line-height: 160%;
+            margin: 0 0 20px 0;
+        }
+
+        .message {
+            font-family: Avenir, 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
+            color: #3D474D;
+            font-size: 17px;
+            line-height: 160%;
+        }
+
+        .logo {
+            background-repeat: no-repeat;
+            font-family: Avenir, 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
+            color: #3D474D;
+            font-size: 17px;
+            line-height: 160%;
+            margin: 0 0 40px 0;
+        }
+
+        .btn > tbody > tr > td {
+            padding-bottom: 0;
+        }
     </style>
 </head>
 
 <body class="">
-<span class="preheader">This is preheader text. Some clients will show this text as a preview.</span>
+<!--<span class="preheader">This is preheader text. Some clients will show this text as a preview.</span>-->
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
     <tr>
         <td>&nbsp;</td>
@@ -373,20 +425,31 @@
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td>
-                                        <p>Hi, Hello there,</p>
-                                        <p>Context Code : {{token}}</p>
-                                        <p>Context Username: {{clientUrl}}</p>
+                                        <!--                                        <p class="logo">-->
+                                        <!--                                            <img alt="Phevoy"-->
+                                        <!--                                                 style="background-repeat:no-repeat;text-decoration:none;width:auto;"-->
+                                        <!--                                                 height="36"-->
+                                        <!--                                                 src="https://www.diekaes.de/wp-content/uploads/2018/01/logo-placeholder.png">-->
+                                        <!--                                        </p>-->
+                                        <h1 class="title align-left mb40">Activate account</h1>
+                                        <p class="greeting">Hi {{username}},</p>
+                                        <p class="message mb40">Your Phevoy account has been successfully created, all
+                                            you
+                                            need to do is follow the link below to activate it now.</p>
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0"
                                                class="btn btn-primary">
                                             <tbody>
                                             <tr>
-                                                <td align="left">
+                                                <td align="left pb0">
                                                     <table role="presentation" border="0" cellpadding="0"
                                                            cellspacing="0">
                                                         <tbody>
                                                         <tr>
-                                                            <td> <a href="http://htmlemail.io"
-                                                                    target="_blank">Call To Action</a> </td>
+                                                            <td>
+                                                                <a href="{{redirectUrl}}" target="_blank">
+                                                                    Activate account
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                         </tbody>
                                                     </table>
@@ -394,9 +457,6 @@
                                             </tr>
                                             </tbody>
                                         </table>
-                                        <p>This is a really simple email template. Its sole purpose is to get the
-                                            recipient to click the button with no distractions.</p>
-                                        <p>Good luck! Hope it works.</p>
                                     </td>
                                 </tr>
                             </table>
@@ -412,20 +472,12 @@
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                         <tr>
                             <td class="content-block">
-                                <span class="apple-link">Company Inc, 3 Abbey Road, San Francisco CA 94102</span>
-                                <br> Don't like these emails? <a
-                                    href="http://i.imgur.com/CScmqnj.gif">Unsubscribe</a>.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="content-block powered-by">
-                                Powered by <a href="http://htmlemail.io">HTMLemail</a>.
+                                <span class="apple-link">© 2020 Phevoy</span>
                             </td>
                         </tr>
                     </table>
                 </div>
                 <!-- END FOOTER -->
-
             </div>
         </td>
         <td>&nbsp;</td>
