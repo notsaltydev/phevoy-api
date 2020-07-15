@@ -107,14 +107,10 @@ export class AuthService {
     }
 
     async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {
-        try {
-            const user: UserDto = await this.usersService.findOne({where: {email}});
-            const token: TokenDto = await this._sendPasswordForgotTokenVerification(user);
+        const user: UserDto = await this.usersService.findOne({where: {email}});
+        const token: TokenDto = await this._sendPasswordForgotTokenVerification(user);
 
-            return !!token
-        } catch (error) {
-            return false;
-        }
+        return !!token
     }
 
     async validateUser(payload: JwtPayload): Promise<UserDto> {
@@ -154,25 +150,28 @@ export class AuthService {
 
     private async _sendPasswordForgotTokenVerification({username, email}: UserDto): Promise<TokenDto> {
         const existingToken: TokenDto = await this._checkExistingToken(email, TokenType.PASSWORD);
+        let token: TokenDto;
+
 
         if (this._hasExistingToken(existingToken)) {
-            return existingToken;
+            token = existingToken;
         } else {
-            const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
-
-            await this.emailService.sendEmail({
-                to: email,
-                from: 'noreply@phevoy.com',
-                subject: 'Reset Password',
-                context: {
-                    clientUrl: 'https://phevoy.com',
-                    token: newEmailToken.token,
-                },
-                templatePath: process.cwd() + '/templates/forgot-password/index'
-            });
-
-            return newEmailToken;
+            token = await this._createForgotPasswordToken(username);
         }
+
+        await this.emailService.sendEmail({
+            to: email,
+            from: 'no-reply@phevoy.com',
+            subject: 'Reset your password',
+            context: {
+                username: username,
+                email: email,
+                redirectUrl: `https://phevoy.com/reset-password/${token.token}`,
+            },
+            templatePath: process.cwd() + '/templates/reset-password/index'
+        });
+
+        return token;
     }
 
     private async _createEmailToken(username: string): Promise<TokenDto> {

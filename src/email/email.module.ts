@@ -3,6 +3,7 @@ import { EmailService } from './email.service';
 import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 
+// todo: Move to model folder.
 export interface SMTPTransportConfig {
     host: string;
     port: number;
