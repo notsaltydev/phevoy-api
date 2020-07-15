@@ -13,24 +13,8 @@ import { TokenService } from "../token/token.service";
 import { CreateTokenDto } from "../token/dto/create-token.dto";
 import { randomStringGenerator } from "@nestjs/common/utils/random-string-generator.util";
 import { TokenType } from "../token/interfaces/token-type.enum";
-import { createTransport } from "nodemailer";
-import * as Mail from "nodemailer/lib/mailer";
+import { EmailService } from "../email/email.service";
 
-export interface SMTPTransportConfig {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-    pass: string;
-}
-
-const smtpTransportConfig: SMTPTransportConfig = {
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    user: 'phevoyapp@gmail.com',
-    pass: ''
-}
 
 @Injectable()
 export class AuthService {
@@ -38,6 +22,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly tokenService: TokenService,
+        private readonly emailService: EmailService
     ) {
     }
 
@@ -99,12 +84,15 @@ export class AuthService {
             const newEmailToken: TokenDto = await this._createEmailToken(username);
 
             // todo: Send e-mail message.
-            await this._sendEmail({
-                email,
-                clientUrl: 'https://phevoy.com',
-                token: newEmailToken.token,
-                subject: 'Verify Email',
-                text: 'Verify Email'
+            await this.emailService.sendEmail({
+                to: email,
+                from: 'no-reply@meistertask.com',
+                subject: 'Activate your Phevoy account',
+                context: {
+                    clientUrl: 'https://phevoy.com',
+                    token: newEmailToken.token,
+                },
+                templatePath: process.cwd() + '/templates/activation/index'
             });
 
             return newEmailToken;
@@ -115,13 +103,18 @@ export class AuthService {
         const user: UserDto = await this.usersService.findOne({where: {email}});
         const token: TokenDto = await this.sendEmailVerification(user);
 
-        return await this._sendEmail({
-            email,
-            clientUrl: 'https://phevoy.com',
-            token: token.token,
+        const sent = await this.emailService.sendEmail({
+            to: email,
+            from: 'noreply@phevoy.com',
             subject: 'Verify Email',
-            text: 'Verify Email'
+            context: {
+                clientUrl: 'https://phevoy.com',
+                token: token.token,
+            },
+            templatePath: process.cwd() + '/templates/activation/index'
         });
+
+        return !!sent;
     }
 
     async sendEmailForgotPasswordVerification(email: string): Promise<boolean> {
@@ -178,13 +171,15 @@ export class AuthService {
         } else {
             const newEmailToken: TokenDto = await this._createForgotPasswordToken(username);
 
-            // todo: Send e-mail message.
-            await this._sendEmail({
-                email,
-                clientUrl: 'https://phevoy.com',
-                token: newEmailToken.token,
+            await this.emailService.sendEmail({
+                to: email,
+                from: 'noreply@phevoy.com',
                 subject: 'Reset Password',
-                text: 'Reset Password'
+                context: {
+                    clientUrl: 'https://phevoy.com',
+                    token: newEmailToken.token,
+                },
+                templatePath: process.cwd() + '/templates/forgot-password/index'
             });
 
             return newEmailToken;
@@ -231,41 +226,6 @@ export class AuthService {
     private _hasExistingToken(token: TokenDto): boolean {
         // todo: Check timestamp.
         return !!token;
-    }
-
-    private async _sendEmail(config: { email: string, token: string, clientUrl: string, subject: string, text: string }): Promise<boolean> {
-        const transporter: Mail = createTransport({
-            host: smtpTransportConfig.host,
-            port: smtpTransportConfig.port,
-            secure: smtpTransportConfig.secure, // true for 465, false for other ports
-            auth: {
-                user: smtpTransportConfig.user,
-                pass: smtpTransportConfig.pass
-            }
-        });
-
-        const mailOptions: Mail.Options = {
-            from: '"Phevoy" <' + smtpTransportConfig.user + '>',
-            to: config.email,
-            subject: config.subject,
-            text: config.text,
-            html: 'Hi! <br><br> Thanks for your registration<br><br>' +
-                '<a href=' + config.clientUrl + '/auth/email/verify/' + config.token + '>Click here to activate your account</a>'
-        };
-
-        const sent: boolean = await new Promise<boolean>(async function (resolve, reject) {
-            return transporter.sendMail(mailOptions, async (error, info) => {
-                if (error) {
-                    console.log('Message sent: %s', error);
-                    return reject(false);
-                }
-
-                console.log('Message sent: %s', info.messageId);
-                resolve(true);
-            });
-        })
-
-        return sent;
     }
 
     private _createJwtToken({username}: UserDto): { expiresIn: string, accessToken: string } {
