@@ -7,6 +7,7 @@ import { UsersService } from "../users/users.service";
 import { TokenEntity } from "./entity/token.entity";
 import { CreateTokenDto } from "./dto/create-token.dto";
 import { FindOneOptions } from "typeorm/find-options/FindOneOptions";
+import { UserDto } from "../users/dto/user.dto";
 
 
 @Injectable()
@@ -28,7 +29,7 @@ export class TokenService {
     public async createToken(username: string, createTokenDto: CreateTokenDto): Promise<TokenDto> {
         const {token, status, type, timestamp} = createTokenDto;
 
-        const owner = await this.usersService.findOne({where: {username}});
+        const owner: UserDto = await this.usersService.findOne({where: {username}});
 
         const newToken: TokenEntity = await this.tokenRepository.create({
             token,

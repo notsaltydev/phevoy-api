@@ -48,10 +48,10 @@ export class AuthService {
 
     async login(loginUserDto: LoginUserDto): Promise<LoginStatus> {
         // find user in db
-        const user = await this.usersService.findByLogin(loginUserDto);
+        const user: UserDto = await this.usersService.findByLogin(loginUserDto);
 
         // generate and sign token
-        const token = this._createJwtToken(user);
+        const token: { expiresIn: string, accessToken: string } = this._createJwtToken(user);
 
         return {
             username: user.username,
@@ -114,7 +114,7 @@ export class AuthService {
     }
 
     async validateUser(payload: JwtPayload): Promise<UserDto> {
-        const user = await this.usersService.findByPayload(payload);
+        const user: UserDto = await this.usersService.findByPayload(payload);
 
         if (!user) {
             throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);

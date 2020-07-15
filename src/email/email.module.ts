@@ -2,15 +2,7 @@ import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-
-// todo: Move to model folder.
-export interface SMTPTransportConfig {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-    pass: string;
-}
+import { SMTPTransportConfig } from "./interfaces/smtp-transport.interface";
 
 export const smtpTransportConfig: SMTPTransportConfig = {
     host: 'smtp.gmail.com',

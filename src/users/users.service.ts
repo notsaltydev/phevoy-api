@@ -81,7 +81,7 @@ export class UsersService {
     }
 
     async setPassword(email: string, newPassword: string): Promise<UserDto> {
-        let user = await this.userRepository.findOne({where: {email}, relations: ['tokens']});
+        let user: UserEntity = await this.userRepository.findOne({where: {email}, relations: ['tokens']});
 
         if (!user) throw new HttpException('LOGIN.USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 
