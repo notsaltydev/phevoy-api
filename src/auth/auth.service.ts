@@ -91,7 +91,7 @@ export class AuthService {
             subject: 'Activate your Phevoy account',
             context: {
                 username: username,
-                redirectUrl: `https://phevoy.com/activate/${token.token}`,
+                redirectUrl: `https://phevoy.com/auth/account-verification/${token.token}`,
             },
             templatePath: process.cwd() + '/templates/activation/index'
         });
@@ -166,7 +166,7 @@ export class AuthService {
             context: {
                 username: username,
                 email: email,
-                redirectUrl: `https://phevoy.com/reset-password/${token.token}`,
+                redirectUrl: `https://phevoy.com/auth/reset-password/${token.token}`,
             },
             templatePath: process.cwd() + '/templates/reset-password/index'
         });

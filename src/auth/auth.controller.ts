@@ -23,6 +23,7 @@ import { ResetPasswordDto } from "../users/dto/reset-password.dto";
 import { TokenDto } from "../token/dto/token.dto";
 import { SendEmailForgotPasswordStatus } from "./interfaces/send-email-forgot-password-status.interface";
 import { ResetPasswordStatus } from "./interfaces/reset-password-status.interface";
+import { ForgotPasswordDto } from "./interfaces/forgot-password.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -85,10 +86,12 @@ export class AuthController {
         }
     }
 
-    @Get('forgot-password/:email')
-    public async sendEmailForgotPasswordVerification(@Param('email') email: string): Promise<SendEmailForgotPasswordStatus> {
+    @Post('forgot-password')
+    public async sendEmailForgotPasswordVerification(
+        @Body() forgotPasswordDto: ForgotPasswordDto,
+    ): Promise<SendEmailForgotPasswordStatus> {
         try {
-            const isEmailForgotPasswordSent = await this.authService.sendEmailForgotPasswordVerification(email);
+            const isEmailForgotPasswordSent = await this.authService.sendEmailForgotPasswordVerification(forgotPasswordDto.email);
 
             if (isEmailForgotPasswordSent) {
                 return {message: 'FORGOT_PASSWORD.EMAIL_FORGOT_PASSWORD.MAIL_SENT', success: true};
