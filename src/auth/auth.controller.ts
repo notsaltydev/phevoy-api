@@ -50,6 +50,7 @@ export class AuthController {
         return result;
     }
 
+    // TODO: Refactor to POST.
     @Get('verify/:token')
     public async verifyEmail(
         @Param('token', new ParseUUIDPipe()) token: string
@@ -71,6 +72,7 @@ export class AuthController {
         }
     }
 
+    // TODO: Refactor to POST.
     @Get('resend-verification/:email')
     public async resendEmailVerification(@Param('email') email: string): Promise<ResendEmailVerificationStatus> {
         try {
