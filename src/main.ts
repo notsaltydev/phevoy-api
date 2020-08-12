@@ -8,17 +8,21 @@ import { Logger, ValidationPipe } from "@nestjs/common";
 const port = process.env.PORT || 3000;
 
 async function bootstrap() {
-    const app = await NestFactory.create(
-        AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV))
-    );
-
     const options = {
         "origin": "*",
         "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
         "preflightContinue": false,
         "optionsSuccessStatus": 204,
-        "credentials":true
+        "credentials": true
     }
+
+    const app = await NestFactory.create(
+        AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV)),
+        {
+            cors: true
+        }
+    );
+
 
     /**
      * Helmet can help protect your app from some well-known
@@ -30,7 +34,7 @@ async function bootstrap() {
      */
     app.use(helmet());
 
-    app.enableCors(options);
+    // app.enableCors();
 
     // /**
     //  * we need this because "cookie" is true in csrfProtection
