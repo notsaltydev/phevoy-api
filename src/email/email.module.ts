@@ -9,7 +9,7 @@ export const smtpTransportConfig: SMTPTransportConfig = {
     port: 587,
     secure: false,
     user: 'phevoyapp@gmail.com',
-    pass: ''
+    pass: 'Bpb93mmU'
 }
 
 @Module({

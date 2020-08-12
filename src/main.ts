@@ -12,7 +12,7 @@ async function bootstrap() {
         AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV)),
         {
             // logger: Boolean(process.env.ENABLELOGGING),
-            logger: console,
+            logger: console
         },
     );
 
