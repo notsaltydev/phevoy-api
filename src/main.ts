@@ -11,9 +11,7 @@ async function bootstrap() {
     const app = await NestFactory.create(
         AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV)),
         {
-            // logger: Boolean(process.env.ENABLELOGGING),
-            cors: true,
-            logger: console
+            cors: true
         },
 
     );
@@ -28,7 +26,7 @@ async function bootstrap() {
      */
     app.use(helmet());
 
-    app.enableCors();
+    // app.enableCors();
 
     // /**
     //  * we need this because "cookie" is true in csrfProtection
