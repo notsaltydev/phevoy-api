@@ -9,12 +9,16 @@ const port = process.env.PORT || 3000;
 
 async function bootstrap() {
     const app = await NestFactory.create(
-        AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV)),
-        {
-            cors: true
-        },
-
+        AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV))
     );
+
+    const options = {
+        "origin": "*",
+        "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "preflightContinue": false,
+        "optionsSuccessStatus": 204,
+        "credentials":true
+    }
 
     /**
      * Helmet can help protect your app from some well-known
@@ -26,7 +30,7 @@ async function bootstrap() {
      */
     app.use(helmet());
 
-    // app.enableCors();
+    app.enableCors(options);
 
     // /**
     //  * we need this because "cookie" is true in csrfProtection
