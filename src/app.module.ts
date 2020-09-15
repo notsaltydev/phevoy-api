@@ -1,30 +1,45 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { CoreModule } from './core/core.module';
-import { UsersModule } from './users/users.module';
-import { ConnectionOptions } from "typeorm";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ScheduleModule } from './schedule/schedule.module';
-import { ConferenceModule } from './conference/conference.module';
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthModule } from "modules/auth/auth.module";
+import { UsersModule } from "modules/users/users.module";
+import { ConferenceModule } from "modules/conference/conference.module";
+import { ScheduleModule } from "modules/schedule/schedule.module";
+import { CoreModule } from "modules/core/core.module";
+import { SharedModule } from "modules/shared/shared.module";
 
-@Module({})
+@Module({
+    controllers: [AppController],
+    imports: [
+        AuthModule,
+        UsersModule,
+        ConferenceModule,
+        ScheduleModule,
+        CoreModule,
+        TypeOrmModule.forRootAsync({
+            imports: [SharedModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('DB_HOST'),
+                port: +configService.get<number>('DB_PORT'),
+                username: configService.get('DB_USERNAME'),
+                password: configService.get('DB_PASSWORD'),
+                database: configService.get('DB_DATABASE'),
+                entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
+                migrations: [__dirname + '/migrations/*{.ts,.js}'],
+                synchronize: false,
+                subscribers: [],
+                migrationsRun: true,
+                logging: true,
+                logger: 'file',
+            }),
+            inject: [ConfigService],
+        }),
+        ConfigModule.forRoot({isGlobal: true})
+    ],
+    providers: [AppService],
+})
 export class AppModule {
-    static forRoot(connOptions: ConnectionOptions): DynamicModule {
-
-        return {
-            module: AppModule,
-            controllers: [AppController],
-            imports: [
-                AuthModule,
-                UsersModule,
-                ConferenceModule,
-                ScheduleModule,
-                CoreModule,
-                TypeOrmModule.forRoot(connOptions),
-            ],
-            providers: [AppService],
-        };
-    }
 }

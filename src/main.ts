@@ -1,19 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { getDbConnectionOptions } from "./shared/utils";
 import * as helmet from 'helmet';
 import * as rateLimit from 'express-rate-limit';
 import { Logger, ValidationPipe } from "@nestjs/common";
+import { ExpressAdapter, NestExpressApplication } from "@nestjs/platform-express";
 
 const port = process.env.PORT || 3000;
 
 async function bootstrap() {
-    const app = await NestFactory.create(
-        AppModule.forRoot(await getDbConnectionOptions(process.env.NODE_ENV)),
-        {
-            // logger: Boolean(process.env.ENABLELOGGING),
-            logger: console
-        },
+    const app = await NestFactory.create<NestExpressApplication>(
+        AppModule,
+        new ExpressAdapter(),
+        {cors: true},
     );
 
 

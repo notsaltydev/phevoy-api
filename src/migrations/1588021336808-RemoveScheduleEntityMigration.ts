@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class RemoveScheduleEntityMigration1588021336808 implements MigrationInterface {
     name = 'RemoveScheduleEntityMigration1588021336808'

@@ -57,7 +57,7 @@ export class AuthController {
         try {
             const emailVerificationToken: TokenDto = await this.authService.verifyEmail(token);
 
-            if(emailVerificationToken) await this.authService.removeToken(emailVerificationToken.id);
+            if (emailVerificationToken) await this.authService.removeToken(emailVerificationToken.id);
 
             return {
                 message: 'LOGIN.EMAIL_VERIFIED',
@@ -115,7 +115,7 @@ export class AuthController {
 
                 isNewPasswordChanged = await this.authService.setUserPassword(verifyForgottenPassword.owner.email, resetPasswordDto.newPassword);
 
-                if(isNewPasswordChanged) await this.authService.removeToken(verifyForgottenPassword.id);
+                if (isNewPasswordChanged) await this.authService.removeToken(verifyForgottenPassword.id);
             } else {
                 return {message: 'RESET_PASSWORD.CHANGE_PASSWORD_ERROR', success: false};
             }

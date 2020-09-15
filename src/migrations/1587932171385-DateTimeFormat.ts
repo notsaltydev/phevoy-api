@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class DateTimeFormat1587932171385 implements MigrationInterface {
     name = 'DateTimeFormat1587932171385'

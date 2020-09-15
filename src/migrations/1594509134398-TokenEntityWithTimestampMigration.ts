@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class TokenEntityWithTimestampMigration1594509134398 implements MigrationInterface {
     name = 'TokenEntityWithTimestampMigration1594509134398'
