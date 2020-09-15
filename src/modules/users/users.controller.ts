@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Req, UseGuards } fro
 import { UsersService } from "./users.service";
 import { AuthGuard } from "@nestjs/passport";
 import { UserDto } from "./dto/user.dto";
-import { passportConstans } from "../auth/constans";
+import { passportConstants } from "common/constants";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangePasswordStatus } from "./interfaces/change-password-status.interface";
 
@@ -12,7 +12,7 @@ export class UsersController {
     }
 
     @Get('me')
-    @UseGuards(AuthGuard(passportConstans.defaultStrategy))
+    @UseGuards(AuthGuard(passportConstants.defaultStrategy))
     public async findUserMe(
         @Req() req: any
     ): Promise<UserDto> {
@@ -22,7 +22,7 @@ export class UsersController {
     }
 
     @Get(':id')
-    @UseGuards(AuthGuard(passportConstans.defaultStrategy))
+    @UseGuards(AuthGuard(passportConstants.defaultStrategy))
     public async findUserById(
         @Param('id', new ParseUUIDPipe()) userId: string
     ): Promise<UserDto> {
@@ -30,7 +30,7 @@ export class UsersController {
     }
 
     @Post('change-password')
-    @UseGuards(AuthGuard(passportConstans.defaultStrategy))
+    @UseGuards(AuthGuard(passportConstants.defaultStrategy))
     public async changePassword(
         @Body() changePasswordDto: ChangePasswordDto,
     ): Promise<ChangePasswordStatus> {

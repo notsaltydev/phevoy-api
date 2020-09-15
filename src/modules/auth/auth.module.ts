@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from "./jwt.strategy";
-import { passportConstans } from "./constans";
+import { passportConstants } from "common/constants";
 import { PassportModule } from "@nestjs/passport";
 import { UsersModule } from "../users/users.module";
 import { TokenModule } from "../token/token.module";
@@ -14,7 +14,7 @@ import { EmailModule } from "../email/email.module";
         TokenModule,
         EmailModule,
         PassportModule.register({
-            defaultStrategy: passportConstans.defaultStrategy,
+            defaultStrategy: passportConstants.defaultStrategy,
             property: 'user',
             session: false,
         })

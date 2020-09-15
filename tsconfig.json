@@ -13,15 +13,10 @@
     "baseUrl": "./src",
     "incremental": true,
     "paths": {
-      "migrations/*": [
-        "migrations/*"
-      ],
-      "modules/*": [
-        "modules/*"
-      ],
-      "utils/*": [
-        "utils/*"
-      ]
+      "common/*": ["common/*"],
+      "migrations/*": ["migrations/*"],
+      "modules/*": ["modules/*"],
+      "utils/*": ["utils/*"]
     }
   }
 }
